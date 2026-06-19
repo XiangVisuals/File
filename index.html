@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Lens - 极简扁平化分析</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.3/babel.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: #F8FAFC; 
+      color: #0F172A; 
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* 自定义扁平化滚动条 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* --- 极简扁平化色块设计 --- */
+    .treemap-leaf {
+      position: absolute;
+      box-sizing: border-box;
+      /* 使用半透明白边框，让色彩拼接更自然 */
+      border: 1px solid rgba(255, 255, 255, 0.4); 
+      cursor: crosshair;
+      overflow: hidden;
+      transition: filter 0.15s ease, opacity 0.15s ease;
+      will-change: filter;
+    }
+
+    /* 悬停时通过调暗自身产生反馈，无阴影无位移，保持纯平 */
+    .treemap-leaf:hover {
+      filter: brightness(0.85);
+      z-index: 20;
+    }
+
+    .treemap-container {
+      position: absolute;
+      box-sizing: border-box;
+      background-color: #F8FAFC; 
+      /* 添加明显的物理边界框，形成"盒子"的轮廓 */
+      border: 1px solid #CBD5E1; 
+      cursor: pointer;
+      overflow: hidden;
+      transition: border-color 0.15s ease;
+    }
+    
+    .treemap-container:hover {
+      border-color: #94A3B8; /* 悬浮时边框加深，凸显层级选中感 */
+    }
+
+    .container-header {
+      background-color: #F1F5F9;
+      border-bottom: 1px solid #CBD5E1;
+    }
+    
+    .treemap-container:hover > .container-header {
+      background-color: #E2E8F0;
+    }
+
+    /* 优雅的淡入动画 */
+    @keyframes flatFadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    .animate-view {
+      animation: flatFadeIn 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="overflow-hidden h-screen w-screen selection:bg-blue-200 flex flex-col">
+
+  <div id="root" class="h-full w-full"></div>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useCallback, useEffect, useRef, useMemo } = React;
+
+    // --- 高级扁平化色盘 ---
+    const PALETTE = {
+      code: '#3B82F6',     
+      image: '#8B5CF6',    
+      video: '#EC4899',    
+      doc: '#F59E0B',      
+      data: '#10B981',     
+      archive: '#EF4444',  
+      system: '#64748B',   
+      unknown: '#94A3B8',  
+      folderFake: '#CBD5E1', 
+      group: '#475569'     
+    };
+
+    const getFileColor = (extension, isGroup, isFakeDir) => {
+      if (isGroup) return PALETTE.group;
+      if (isFakeDir) return PALETTE.folderFake;
+
+      const ext = (extension || '').toLowerCase();
+      if (['js', 'jsx', 'ts', 'tsx', 'py', 'java', 'cpp', 'c', 'go', 'html', 'css', 'vue', 'json'].includes(ext)) return PALETTE.code;
+      if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'fig', 'psd'].includes(ext)) return PALETTE.image;
+      if (['mp4', 'mov', 'avi', 'mkv', 'mp3', 'wav'].includes(ext)) return PALETTE.video;
+      if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'md', 'txt'].includes(ext)) return PALETTE.doc;
+      if (['xml', 'csv', 'db', 'sql', 'sqlite'].includes(ext)) return PALETTE.data;
+      if (['zip', 'rar', 'tar', 'gz', '7z'].includes(ext)) return PALETTE.archive;
+      if (['env', 'gitignore', 'lock', 'config', 'ini'].includes(ext)) return PALETTE.system;
+      return PALETTE.unknown;
+    };
+
+    const formatBytes = (bytes) => {
+      if (bytes === 0 || !bytes) return '0 B';
+      const k = 1024, sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+    };
+
+    // --- 算法核心：Squarify 矩阵切分 ---
+    const squarify = (children, x, y, width, height, totalSize) => {
+      const result = [];
+      if (children.length === 0 || width <= 0 || height <= 0 || totalSize <= 0) return result;
+
+      const slice = (nodes, rX, rY, rW, rH, rSize) => {
+        if (nodes.length === 0 || rW <= 0 || rH <= 0 || rSize <= 0) return;
+        if (nodes.length === 1) {
+          result.push({ node: nodes[0], x: rX, y: rY, w: rW, h: rH });
+          return;
+        }
+
+        let halfSize = rSize / 2;
+        let currentSum = 0;
+        let splitIndex = 0;
+
+        for (let i = 0; i < nodes.length; i++) {
+          currentSum += nodes[i].size;
+          if (currentSum >= halfSize) {
+            splitIndex = (currentSum - halfSize < halfSize - (currentSum - nodes[i].size)) || i === 0 ? i : i - 1;
+            break;
+          }
+        }
+
+        let group1 = nodes.slice(0, splitIndex + 1);
+        let group2 = nodes.slice(splitIndex + 1);
+        let size1 = group1.reduce((s, n) => s + n.size, 0);
+        let size2 = rSize - size1;
+
+        if (rW > rH) {
+          let w1 = (size1 / rSize) * rW;
+          slice(group1, rX, rY, w1, rH, size1);
+          slice(group2, rX + w1, rY, rW - w1, rH, size2);
+        } else {
+          let h1 = (size1 / rSize) * rH;
+          slice(group1, rX, rY, rW, h1, size1);
+          slice(group2, rX, rY + h1, rW, rH - h1, size2);
+        }
+      };
+
+      slice(children, x, y, width, height, totalSize);
+      return result;
+    };
+
+    // --- 左侧目录树组件 ---
+    const DirTreeNode = ({ node, currentPath, onSelect, depth = 0 }) => {
+      const isSelected = currentPath === node.path;
+      const isPathInside = currentPath.startsWith(node.path);
+      const [isOpen, setIsOpen] = useState(isPathInside || depth < 1);
+
+      const dirs = useMemo(() => {
+        if (!node.isDirectory || !node.children) return [];
+        return node.children.filter(c => c.isDirectory).sort((a, b) => a.name.localeCompare(b.name));
+      }, [node]);
+
+      if (!node.isDirectory) return null;
+
+      return (
+        <div className="flex flex-col">
+          <div 
+            className={`flex items-center space-x-2 py-1.5 px-2 cursor-pointer transition-colors
+              ${isSelected ? 'bg-blue-50 text-blue-600 font-medium border-r-2 border-blue-500' : 'hover:bg-slate-100 text-slate-600'}
+            `}
+            style={{ paddingLeft: `${depth * 14 + 12}px` }}
+            onClick={() => {
+              if (isSelected) setIsOpen(!isOpen);
+              else { setIsOpen(true); onSelect(node); }
+            }}
+          >
+            <i className={`ph-bold ${dirs.length === 0 ? 'ph-dot-outline text-slate-300' : (isOpen ? 'ph-caret-down text-slate-400' : 'ph-caret-right text-slate-400')} text-[10px] w-3 text-center`}></i>
+            <i className={`ph-fill ${isOpen ? 'ph-folder-open' : 'ph-folder'} ${isSelected ? 'text-blue-500' : 'text-slate-400'} text-sm`}></i>
+            <span className="text-[13px] truncate flex-1 leading-none pt-0.5">{node.name === 'Root' ? '本地磁盘' : node.name}</span>
+          </div>
+          
+          {isOpen && dirs.length > 0 && (
+            <div className="flex flex-col">
+              {dirs.map((d, i) => <DirTreeNode key={i} node={d} currentPath={currentPath} onSelect={onSelect} depth={depth + 1} />)}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // --- 右侧属性面板 (Inspector) ---
+    const InspectorPanel = ({ node, rootSize }) => {
+      if (!node) {
+        return (
+          <div className="w-72 bg-white border-l border-slate-200 flex flex-col items-center justify-center text-slate-400 p-6 text-center">
+            <i className="ph-duotone ph-cursor-click text-4xl mb-3 text-slate-300"></i>
+            <p className="text-sm">将光标悬浮在图表色块上以查看详细信息</p>
+          </div>
+        );
+      }
+
+      const isDir = node.isDirectory || node.isFakeDir;
+      const isGroup = node.isGroup;
+      const percentage = rootSize ? ((node.size / rootSize) * 100).toFixed(2) : 0;
+
+      return (
+        <div className="w-72 bg-white border-l border-slate-200 flex flex-col z-20">
+          <div className="p-4 border-b border-slate-100 bg-slate-50">
+            <h2 className="text-[11px] font-bold text-slate-500 tracking-wider uppercase flex items-center">
+              <i className="ph-bold ph-info mr-1.5"></i> 属性侦测 (Inspector)
+            </h2>
+          </div>
+          
+          <div className="p-5 flex-1 overflow-y-auto">
+            <div className="flex items-start space-x-3 mb-6">
+              <div 
+                className="w-12 h-12 rounded flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: isDir ? '#EFF6FF' : (isGroup ? '#F1F5F9' : `${getFileColor(node.extension, isGroup, node.isFakeDir)}20`) }}
+              >
+                {isDir ? (
+                  <i className="ph-fill ph-folder text-3xl text-blue-500"></i>
+                ) : isGroup ? (
+                  <i className="ph-fill ph-squares-four text-3xl text-slate-400"></i>
+                ) : (
+                  <i className="ph-fill ph-file text-3xl" style={{ color: getFileColor(node.extension, isGroup, node.isFakeDir) }}></i>
+                )}
+              </div>
+              <div className="flex-1 min-w-0 pt-0.5">
+                <h3 className="font-bold text-[15px] text-slate-800 break-words leading-snug">
+                  {node.name}
+                </h3>
+                <p className="text-[12px] text-slate-500 mt-1 font-mono break-all line-clamp-2">
+                  {node.path}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <div className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold mb-1">物理体积</div>
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-2xl font-bold text-slate-800 font-mono tracking-tight">{formatBytes(node.size).split(' ')[0]}</span>
+                  <span className="text-sm font-semibold text-slate-500">{formatBytes(node.size).split(' ')[1]}</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[11px] font-semibold mb-1.5">
+                  <span className="text-slate-400 uppercase">当前层级占比</span>
+                  <span className="text-slate-600">{percentage}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-100 overflow-hidden">
+                  <div 
+                    className="h-full transition-all duration-300" 
+                    style={{ 
+                      width: `${Math.min(percentage, 100)}%`,
+                      backgroundColor: getFileColor(node.extension, isGroup, node.isFakeDir) || '#3B82F6'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 mt-4 border-t border-slate-100 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-[12px] text-slate-500">资源类型</span>
+                  <span className="text-[12px] font-medium text-slate-800 bg-slate-100 px-2 py-0.5 rounded-sm">
+                    {isGroup ? '聚合碎片' : isDir ? '目录 (Directory)' : (node.extension?.toUpperCase() || '未知')}
+                  </span>
+                </div>
+                {isDir && !isGroup && node.children && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[12px] text-slate-500">子项数量</span>
+                    <span className="text-[12px] font-medium text-slate-800">
+                      {node.children.length} 个项目
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {isDir && (
+              <div className="mt-8 bg-blue-50 border border-blue-100 p-3 flex items-center space-x-2 text-blue-700">
+                <i className="ph-duotone ph-cursor-click text-lg flex-shrink-0"></i>
+                <span className="text-[12px] font-medium leading-tight">在图表中单击该色块，可深入查看其内部结构。</span>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // --- 核心 App 组件 ---
+    function App() {
+      const [fileTree, setFileTree] = useState(null);
+      const [currentViewNode, setCurrentViewNode] = useState(null);
+      const [history, setHistory] = useState([]);
+      const [hoveredNode, setHoveredNode] = useState(null);
+      
+      const [isProcessing, setIsProcessing] = useState(false);
+      const [progress, setProgress] = useState(0);
+      const containerRef = useRef(null);
+
+      // 时间分片解析
+      const processFilesInChunks = useCallback((fileList) => {
+        setIsProcessing(true);
+        setProgress(0);
+        setFileTree(null);
+        setHoveredNode(null);
+
+        const root = { name: 'Root', path: 'Root', isDirectory: true, children: {}, size: 0, parent: null };
+        let i = 0;
+        const totalFiles = fileList.length;
+        const chunkSize = 1500; 
+
+        const processNextChunk = () => {
+          const end = Math.min(i + chunkSize, totalFiles);
+          for (; i < end; i++) {
+            const file = fileList[i];
+            const pathParts = file.webkitRelativePath.split('/');
+            
+            let current = root;
+            for (let j = 0; j < pathParts.length; j++) {
+              const part = pathParts[j];
+              const isLast = j === pathParts.length - 1;
+
+              if (isLast) {
+                current.children[part] = {
+                  name: part,
+                  path: file.webkitRelativePath,
+                  isDirectory: false,
+                  size: file.size,
+                  extension: part.split('.').pop().toLowerCase(),
+                  parent: current
+                };
+                current.size += file.size;
+              } else {
+                if (!current.children[part]) {
+                  current.children[part] = {
+                    name: part,
+                    path: pathParts.slice(0, j + 1).join('/'),
+                    isDirectory: true,
+                    children: {},
+                    size: 0,
+                    parent: current
+                  };
+                }
+                current = current.children[part];
+              }
+            }
+          }
+
+          if (i < totalFiles) {
+            setProgress(Math.round((i / totalFiles) * 100));
+            requestAnimationFrame(() => setTimeout(processNextChunk, 0));
+          } else {
+            setProgress(100);
+            const prepareNode = (node) => {
+              if (node.isDirectory) {
+                node.children = Object.values(node.children);
+                node.children.forEach(prepareNode);
+                node.size = node.children.reduce((sum, c) => sum + c.size, 0);
+                node.children.sort((a, b) => b.size - a.size);
+              }
+            };
+
+            setTimeout(() => {
+              prepareNode(root);
+              setFileTree(root);
+              setCurrentViewNode(root);
+              setHistory([root]);
+              setIsProcessing(false);
+            }, 50);
+          }
+        };
+
+        requestAnimationFrame(() => setTimeout(processNextChunk, 0));
+      }, []);
+
+      const handleDirectorySelect = (e) => {
+        if (e.target.files?.length > 0) processFilesInChunks(e.target.files);
+      };
+
+      const handleZoomIn = useCallback((node) => {
+        if (node.isDirectory && node.size > 0) {
+          const newHistory = [];
+          let curr = node;
+          while (curr) {
+            newHistory.unshift(curr);
+            curr = curr.parent;
+          }
+          setHistory(newHistory);
+          setCurrentViewNode(node);
+          setHoveredNode(null);
+        }
+      }, []);
+
+      const handleGoUp = useCallback(() => {
+        if (currentViewNode && currentViewNode.parent) {
+          handleZoomIn(currentViewNode.parent);
+        }
+      }, [currentViewNode, handleZoomIn]);
+
+      const handleNavigate = (index) => {
+        handleZoomIn(history[index]);
+      };
+
+      // --- 预计算视图布局 (无限层级直达最底层，包含嵌套包裹盒模型) ---
+      const layoutData = useMemo(() => {
+        if (!currentViewNode || !containerRef.current) return [];
+        
+        const containerW = containerRef.current.clientWidth;
+        const containerH = containerRef.current.clientHeight;
+        const results = [];
+
+        const MAX_RENDER_DEPTH = 99; 
+        const MAX_ITEMS_PER_FOLDER = 200; 
+
+        const generateLayout = (node, x, y, w, h, depth) => {
+          if (w * h < 30 || depth >= MAX_RENDER_DEPTH) {
+            if (node.isDirectory) {
+              results.push({ node, x, y, w, h, depth, isLeaf: true, isFakeDir: true });
+            } else {
+              results.push({ node, x, y, w, h, depth, isLeaf: true });
+            }
+            return;
+          }
+
+          if (node.isDirectory) {
+            results.push({ node, x, y, w, h, depth, isContainer: true });
+            
+            // 物理包裹边距计算 (Nested Box Model)
+            const isTiny = h < 45 || w < 45;
+            const hasHeader = depth > 0 && !isTiny; 
+            const headerHeight = hasHeader ? 22 : 0; 
+            
+            // 给所有的子元素流出 3px 的 padding (根节点除外)
+            const padSides = depth === 0 ? 0 : (isTiny ? 1 : 3);
+            const padBottom = depth === 0 ? 0 : (isTiny ? 1 : 3);
+            
+            const innerX = x + padSides;
+            const innerY = y + headerHeight + (hasHeader ? 0 : padSides);
+            const innerW = w - padSides * 2;
+            const innerH = h - headerHeight - padBottom - (hasHeader ? 0 : padSides);
+
+            if (innerW > 0 && innerH > 0) {
+              let renderChildren = node.children;
+              if (renderChildren.length > MAX_ITEMS_PER_FOLDER) {
+                const topChildren = renderChildren.slice(0, MAX_ITEMS_PER_FOLDER - 1);
+                const tailChildren = renderChildren.slice(MAX_ITEMS_PER_FOLDER - 1);
+                const tailSize = tailChildren.reduce((acc, c) => acc + c.size, 0);
+                
+                renderChildren = [...topChildren, {
+                  name: `${tailChildren.length} 个其它碎片...`,
+                  isDirectory: false,
+                  isGroup: true,
+                  size: tailSize,
+                  path: node.path + '/_grouped_tail',
+                  extension: 'sys'
+                }];
+              }
+
+              const rects = squarify(renderChildren, innerX, innerY, innerW, innerH, node.size);
+              rects.forEach(rect => {
+                generateLayout(rect.node, rect.x, rect.y, rect.w, rect.h, depth + 1);
+              });
+            }
+          } else {
+            results.push({ node, x, y, w, h, depth, isLeaf: true });
+          }
+        };
+
+        generateLayout(currentViewNode, 0, 0, containerW, containerH, 0);
+        return results;
+      }, [currentViewNode, containerRef.current?.clientWidth, containerRef.current?.clientHeight]);
+
+      // 监听窗口缩放
+      useEffect(() => {
+        let timer;
+        const handleResize = () => {
+          clearTimeout(timer);
+          timer = setTimeout(() => setCurrentViewNode(prev => ({...prev})), 100);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+      }, []);
+
+      return (
+        <div className="flex flex-col h-full w-full relative bg-white">
+          
+          {/* 纯净扁平化顶栏 */}
+          <header className="h-[52px] flex-shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-5 z-30 relative">
+            <div className="flex items-center space-x-3 w-64">
+              <div className="w-8 h-8 bg-blue-600 flex items-center justify-center text-white">
+                <i className="ph-bold ph-squares-four text-lg"></i>
+              </div>
+              <h1 className="text-[15px] font-bold text-slate-800 tracking-tight">
+                Space Lens
+              </h1>
+            </div>
+
+            <div className="flex-1 flex justify-center mx-4">
+              <div className="flex items-center space-x-1 overflow-x-auto hide-scrollbar max-w-3xl">
+                {history.map((node, idx) => (
+                  <React.Fragment key={idx}>
+                    <button 
+                      onClick={() => handleNavigate(idx)}
+                      className={`text-[13px] px-2.5 py-1.5 transition-colors whitespace-nowrap
+                        ${idx === history.length - 1 
+                          ? 'text-slate-900 font-bold bg-slate-100' 
+                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                        }`}
+                    >
+                      {node.name === 'Root' ? '本地磁盘' : node.name}
+                    </button>
+                    {idx < history.length - 1 && (
+                      <i className="ph-bold ph-caret-right text-slate-300 text-[10px]"></i>
+                    )}
+                  </React.Fragment>
+                ))}
+                {!fileTree && <span className="text-[13px] text-slate-400 px-3">无载入数据</span>}
+              </div>
+            </div>
+
+            <div className="flex items-center w-64 justify-end">
+              <label className="cursor-pointer bg-slate-900 hover:bg-blue-600 text-white px-4 py-2 text-[13px] font-semibold transition-colors flex items-center space-x-2">
+                <i className="ph-bold ph-folder-open text-[15px]"></i>
+                <span>扫描本地目录</span>
+                <input 
+                  type="file" 
+                  webkitdirectory="true" 
+                  directory="true" 
+                  multiple 
+                  className="hidden" 
+                  onChange={handleDirectorySelect}
+                />
+              </label>
+            </div>
+          </header>
+
+          {/* 主体三栏布局 */}
+          <div className="flex-1 flex overflow-hidden relative">
+            
+            {/* 左侧边栏 (Explorer) */}
+            {fileTree && (
+              <aside className="w-64 flex-shrink-0 bg-white border-r border-slate-200 overflow-y-auto hide-scrollbar flex flex-col z-10">
+                <div className="p-3 border-b border-slate-100 sticky top-0 bg-white/90 backdrop-blur-sm z-10">
+                  <h2 className="text-[11px] font-bold text-slate-400 tracking-wider uppercase ml-1 flex items-center">
+                    <i className="ph-bold ph-tree-structure mr-1.5"></i> 资源树
+                  </h2>
+                </div>
+                <div className="p-1.5 pb-10">
+                  <DirTreeNode 
+                    node={fileTree} 
+                    currentPath={currentViewNode?.path} 
+                    onSelect={handleZoomIn} 
+                  />
+                </div>
+              </aside>
+            )}
+
+            {/* 中间核心分析视口 */}
+            <main className="flex-1 relative overflow-hidden bg-slate-50 flex flex-col">
+              
+              {/* 操作栏 */}
+              {fileTree && (
+                <div className="h-12 border-b border-slate-200 bg-white flex items-center px-4 flex-shrink-0">
+                  <button 
+                    onClick={handleGoUp}
+                    disabled={!currentViewNode || !currentViewNode.parent}
+                    className={`flex items-center space-x-1.5 px-3 py-1.5 text-[13px] font-medium transition-colors
+                      ${(!currentViewNode || !currentViewNode.parent) 
+                        ? 'text-slate-300 cursor-not-allowed' 
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
+                  >
+                    <i className="ph-bold ph-arrow-left"></i>
+                    <span>返回上一级</span>
+                  </button>
+                  <div className="w-px h-4 bg-slate-200 mx-4"></div>
+                  <div className="text-[12px] text-slate-500 font-mono flex items-center">
+                    <i className="ph-fill ph-hard-drive mr-1.5 text-slate-400"></i>
+                    当前容量: {currentViewNode ? formatBytes(currentViewNode.size) : '0 B'}
+                  </div>
+                </div>
+              )}
+
+              <div ref={containerRef} className="flex-1 relative overflow-hidden p-2">
+                
+                {isProcessing && (
+                  <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm">
+                    <i className="ph-bold ph-circle-notch text-4xl text-blue-600 animate-spin"></i>
+                    <div className="text-[15px] font-bold text-slate-800 mt-5">正在解析物理映射...</div>
+                    <div className="w-64 h-1.5 bg-slate-100 mt-4 overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-600 transition-none"
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
+                {!fileTree && !isProcessing && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+                    <i className="ph-duotone ph-stack text-6xl mb-4 text-slate-200"></i>
+                    <p className="text-[14px]">请从右上角选择目录开始极简分析</p>
+                  </div>
+                )}
+
+                {/* 树图渲染引擎 (极致扁平，纯白切割，盒模型嵌套) */}
+                {fileTree && containerRef.current && (
+                  <div 
+                    key={currentViewNode?.path || 'root'} 
+                    className="absolute inset-2 animate-view"
+                    onMouseLeave={() => setHoveredNode(null)}
+                  >
+                    {layoutData.map((item, idx) => {
+                      const { node, x, y, w, h, depth, isContainer, isLeaf, isFakeDir } = item;
+                      
+                      // 渲染扁平化容器 (包裹框)
+                      if (isContainer) {
+                        // 随着层级加深，底色非常轻微地变深，增强纵深感
+                        const bgs = ['#FFFFFF', '#F8FAFC', '#F1F5F9', '#E2E8F0', '#CBD5E1'];
+                        const bg = bgs[Math.min(depth, 4)];
+
+                        return (
+                          <div 
+                            key={`container-${node.path}-${idx}`}
+                            className="treemap-container group"
+                            style={{ 
+                              left: x, top: y, width: Math.max(0, w), height: Math.max(0, h),
+                              backgroundColor: bg,
+                              border: depth === 0 ? 'none' : '1px solid #CBD5E1'
+                            }}
+                            onClick={(e) => { e.stopPropagation(); handleZoomIn(node); }}
+                            onMouseEnter={(e) => { e.stopPropagation(); setHoveredNode(node); }}
+                          >
+                            {depth > 0 && h > 45 && w > 45 && (
+                              <div className="container-header absolute top-0 left-0 w-full h-[22px] px-2 flex items-center">
+                                <i className="ph-fill ph-folder text-slate-400 mr-1.5 text-[11px]"></i>
+                                <span className="text-[10px] font-bold text-slate-600 truncate">{node.name}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      // 渲染扁平实体色块
+                      if (isLeaf) {
+                        const bgColor = getFileColor(node.extension, node.isGroup, isFakeDir);
+
+                        return (
+                          <div
+                            key={`node-${node.path}-${idx}`}
+                            className="treemap-leaf group"
+                            style={{
+                              left: x, 
+                              top: y,
+                              width: Math.max(0, w),
+                              height: Math.max(0, h),
+                              backgroundColor: bgColor
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (node.isDirectory || isFakeDir) handleZoomIn(node);
+                            }}
+                            onMouseEnter={(e) => { e.stopPropagation(); setHoveredNode(node); }}
+                          >
+                            {w > 45 && h > 30 && (
+                              <div className="absolute inset-0 p-1.5 flex flex-col items-start justify-start pointer-events-none">
+                                <span className="text-white text-[11px] font-semibold leading-tight truncate w-full">
+                                  {node.name}
+                                </span>
+                                {w > 65 && h > 45 && (
+                                  <span className="text-white/80 font-mono text-[9px] mt-0.5">
+                                    {formatBytes(node.size)}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
+                )}
+              </div>
+            </main>
+
+            {/* 右侧边栏 (Inspector) */}
+            <InspectorPanel node={hoveredNode} rootSize={currentViewNode?.size} />
+
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
