@@ -34,8 +34,8 @@ canvas{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
 
   <div class="section">
     <div class="drop" id="drop" role="button" tabindex="0">
-<strong>选择图片</strong><span>点击选择 JPG / PNG / WebP，也可拖入图片</span>
-<input id="file" type="file" accept="image/jpeg,image/png,image/webp,image/*">
+<strong>选择图片</strong><span>点击选择 JPG / PNG / WebP / HEIC / HEIF，也可拖入图片</span>
+<input id="file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,image/*">
 </div>
   </div>
 
@@ -84,7 +84,7 @@ canvas{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
     <button type="button" class="primary" id="download">导出 PNG</button>
     <button type="button" id="fullscreen">全屏预览</button>
   </div>
-  <div class="hint">所有处理均在浏览器本地 Canvas 完成，图片不会上传服务器。新版加入了平滑采样、随机抖动、主体权重与自适应箭头尺寸，能明显减少“网格感”和方向噪声。建议使用人物、建筑、城市或具有明显明暗结构的照片。</div>
+  <div class="hint">所有处理均在浏览器本地 Canvas 完成，图片不会上传服务器。新版加入了平滑采样、主体权重与自适应箭头尺寸，能明显减少“网格感”和方向噪声。建议使用人物、建筑、城市或具有明显明暗结构的照片。</div>
 </aside>
 
 <main class="stage">
@@ -102,7 +102,7 @@ const c=$('canvas'),ctx=c.getContext('2d');
 const src=document.createElement('canvas'),sctx=src.getContext('2d',{willReadFrequently:true});
 let img=null,pixels=null,iw=0,ih=0;
 
-const controls=['density','size','strength','contrast','threshold','weight','bg'];
+const controls=['density','size','strength','contrast','threshold','weight','bg','smooth'];
 controls.forEach(id=>$(id)?.addEventListener('input',()=>{updateLabels();render()}));
 $('mode')?.addEventListener('change',render);
 function updateLabels(){
@@ -121,24 +121,95 @@ fileInput.addEventListener('change',e=>{const f=e.target.files?.[0];if(f)loadFil
 ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();e.stopPropagation();drop.classList.remove('drag');}));
 drop.addEventListener('drop',e=>{const f=e.dataTransfer?.files?.[0];if(f)loadFile(f);});
 
-function loadFile(file){
- if(!file||!file.type.startsWith('image/')){alert('请选择 JPG、PNG 或 WebP 图片。');return;}
- const url=URL.createObjectURL(file),im=new Image();
- im.onload=()=>{
-  try{
-   img=im;iw=im.naturalWidth;ih=im.naturalHeight;
-   const scale=Math.min(1,1800/Math.max(iw,ih));
-   src.width=Math.max(1,Math.round(iw*scale));src.height=Math.max(1,Math.round(ih*scale));
-   sctx.setTransform(1,0,0,1,0,0);sctx.clearRect(0,0,src.width,src.height);
-   sctx.drawImage(im,0,0,src.width,src.height);pixels=sctx.getImageData(0,0,src.width,src.height);
-   c.width=src.width;c.height=src.height;$('empty').style.display='none';render();
-  }catch(err){console.error(err);alert('图片读取失败，请换一张 JPG/PNG/WebP 图片重试。');}
-  finally{URL.revokeObjectURL(url);}
- };
- im.onerror=()=>{URL.revokeObjectURL(url);alert('无法读取这张图片，请换一张图片重试。');};
- im.src=url;
+function isHeifFile(file){
+ const type=(file.type||'').toLowerCase();
+ const name=(file.name||'').toLowerCase();
+ return type==='image/heic'||type==='image/heif'||name.endsWith('.heic')||name.endsWith('.heif');
 }
 
+async function decodeImageFile(file){
+ const type=(file.type||'').toLowerCase();
+ const heif=isHeifFile(file);
+
+ // createImageBitmap is usually the most reliable native path on Safari
+ // when the OS/browser has HEIF decoding support.
+ if('createImageBitmap' in window){
+  try{
+   const bitmap=await createImageBitmap(file);
+   return bitmap;
+  }catch(e){}
+ }
+
+ // Fallback to HTMLImageElement / object URL.
+ return await new Promise((resolve,reject)=>{
+  const url=URL.createObjectURL(file);
+  const im=new Image();
+  im.decoding='async';
+  im.onload=()=>{URL.revokeObjectURL(url);resolve(im);};
+  im.onerror=()=>{URL.revokeObjectURL(url);reject(new Error(heif?'HEIF_UNSUPPORTED':'IMAGE_DECODE_FAILED'));};
+  im.src=url;
+ });
+}
+
+function loadFile(file){
+ if(!file || (file.type && !file.type.startsWith('image/') && !isHeifFile(file))){
+  alert('请选择 JPG、PNG、WebP、HEIC 或 HEIF 图片。'); return;
+ }
+
+ decodeImageFile(file).then(im=>{
+  try{
+   img=im;
+   iw=im.width||im.naturalWidth;
+   ih=im.height||im.naturalHeight;
+   const scale=Math.min(1,1800/Math.max(iw,ih));
+   src.width=Math.max(1,Math.round(iw*scale));
+   src.height=Math.max(1,Math.round(ih*scale));
+
+   sctx.setTransform(1,0,0,1,0,0);
+   sctx.clearRect(0,0,src.width,src.height);
+   sctx.drawImage(im,0,0,src.width,src.height);
+   pixels=sctx.getImageData(0,0,src.width,src.height);
+
+   if(im.close) im.close();
+   c.width=src.width;
+   c.height=src.height;
+   $('empty').style.display='none';
+   render();
+  }catch(err){
+   console.error('ArrowFlow processing error:',err);
+   alert('图片已读取，但生成效果时发生错误。请刷新页面后重试。');
+  }
+ }).catch(err=>{
+  console.error('Image decode error:',err);
+  if(err.message==='HEIF_UNSUPPORTED'){
+   alert('当前浏览器无法直接解码 HEIC/HEIF。请使用最新版 Safari，或先将照片转换为 JPG/PNG。');
+  }else{
+   alert('图片无法读取，请换一张图片重试。');
+  }
+ });
+}
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function sampleLumRaw(x,y){
+  x=Math.round(clamp(x,0,src.width-1));
+  y=Math.round(clamp(y,0,src.height-1));
+  const i=(y*src.width+x)*4,d=pixels.data;
+  return (0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2])/255;
+}
+function smoothSample(x,y,r){
+  r=Math.max(0,Math.min(8,Math.round(r||0)));
+  if(!r) return sampleLumRaw(x,y);
+  let sum=0,count=0;
+  for(let yy=-r;yy<=r;yy++){
+    for(let xx=-r;xx<=r;xx++){
+      // Circular kernel gives smoother results without random jitter.
+      if(xx*xx+yy*yy<=r*r){
+        sum+=sampleLumRaw(x+xx,y+yy);count++;
+      }
+    }
+  }
+  return count?sum/count:sampleLumRaw(x,y);
+}
 function lum(x,y){return smoothSample(x,y,+$('smooth').value);}
 function gradient(x,y){
   const e=Math.max(2,+$('smooth').value+1);
