@@ -313,66 +313,23 @@ function arrow(x,y,len,ang,alpha){
   ctx.beginPath();ctx.moveTo(len*.5-h,-h*.72);ctx.lineTo(len*.5,0);ctx.lineTo(len*.5-h,h*.72);ctx.stroke();
   ctx.restore();
 }
-function render(){
-  if(!pixels)return;
-  const w=src.width,h=src.height;
-  const bg=+$('bg').value/100;
-  ctx.clearRect(0,0,w,h);
-  ctx.fillStyle=`rgb(${Math.round(5*bg)},${Math.round(5*bg)},${Math.round(5*bg)})`;
-  ctx.fillRect(0,0,w,h);
-
-  const density=+$('density').value;
-  // 用短边控制采样尺度，避免不同画幅下箭头比例失真。
-  const short=Math.min(w,h);
-  const cell=clamp(short/density,7,55);
-  const base=+$('size').value;
-  const contrast=+$('contrast').value;
-  const threshold=+$('threshold').value;
-  const focus=+$('focus').value;
-  const jitter=+$('jitter').value/100;
-
-  // 二次采样 + 抖动：打破机械网格，同时保持整体规则性。
-  // 亮度反相作为“主体权重”，暗部更容易形成粗箭头。
-  for(let row=0, y=cell*.5; y<h; row++, y+=cell){
-    for(let col=0, x=cell*.5; x<w; col++, x+=cell){
-      const jx=(Math.random()-.5)*cell*jitter;
-      const jy=(Math.random()-.5)*cell*jitter;
-      const px=clamp(x+jx,0,w-1), py=clamp(y+jy,0,h-1);
-      const l=lum(px,py);
-      let v=Math.pow(clamp(1-l,0,1),contrast);
-      v=Math.pow(v,1/Math.max(.2,focus));
-      if(v<threshold) continue;
-
-      // 局部梯度决定方向；弱纹理区域使用邻域平均方向，减少箭头抖动。
-      let [vx,vy]=field(px,py);
-      let angle=Math.atan2(vy,vx);
-      if(!Number.isFinite(angle)) angle=-Math.PI/2;
-
-      // 让主体区域同时控制尺寸、透明度和视觉重量。
-      const len=base*(.30+v*1.70);
-      const alpha=.16+Math.pow(v,.72)*.84;
-      arrow(px,py,len,angle,alpha);
-    }
-  }
-}
 $('random').onclick=()=>{
- $('density').value=18+Math.floor(Math.random()*38);
- $('size').value=7+Math.floor(Math.random()*18);
- $('strength').value=(.5+Math.random()*1.7).toFixed(1);
- $('contrast').value=(.7+Math.random()*1.8).toFixed(1);
- $('threshold').value=(Math.random()*.25).toFixed(2);
- $('smooth').value=Math.floor(Math.random()*6);
- $('jitter').value=8+Math.floor(Math.random()*30);
- $('focus').value=(.8+Math.random()*1.4).toFixed(1);
- $('weight').value=(1.2+Math.random()*2.8).toFixed(1);
- $('mode').value=['gradient','radial','vortex','up'][Math.floor(Math.random()*4)];
- updateLabels();render();
+  $('density').value=18+Math.floor(Math.random()*38);
+  $('size').value=7+Math.floor(Math.random()*18);
+  $('strength').value=(.5+Math.random()*1.7).toFixed(1);
+  $('contrast').value=(.7+Math.random()*1.8).toFixed(1);
+  $('threshold').value=(Math.random()*.25).toFixed(2);
+  $('smooth').value=Math.floor(Math.random()*6);
+  $('weight').value=(1.2+Math.random()*2.8).toFixed(1);
+  $('mode').value=['gradient','radial','vortex','up'][Math.floor(Math.random()*4)];
+  updateLabels();render();
 };
 $('reset').onclick=()=>{
- $('density').value=30;$('size').value=13;$('strength').value=1;$('contrast').value=1.4;
- $('threshold').value=.08;$('smooth').value=3;$('jitter').value=18;$('focus').value=1.3;$('weight').value=2.4;$('bg').value=100;$('mode').value='gradient';
- updateLabels();render();
+  $('density').value=30;$('size').value=13;$('strength').value=1;$('contrast').value=1.4;
+  $('threshold').value=.08;$('smooth').value=3;$('weight').value=2.4;$('bg').value=100;$('mode').value='gradient';
+  updateLabels();render();
 };
+
 $('download').onclick=async()=>{
   if(!pixels){alert('请先上传图片');return;}
   try{
