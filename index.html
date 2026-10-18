@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-  <title>XIANGVISUALS // FILE — Pure LAN P2P</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+  <title>XIANGVISUALS // FILE — LAN P2P Archive Transfer</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -13,13 +13,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&family=Noto+Serif+SC:wght@200;300;400;500&display=swap" rel="stylesheet">
 
-  <!-- PeerJS for Real Cross-Device WebRTC DataChannel Mesh -->
+  <!-- PeerJS for Cross-Device WebRTC DataChannel Mesh -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <style>
     :root {
       --bg-primary: #ffffff;
       --bg-secondary: #f6f6f6;
+      --bg-tertiary: #efefef;
       --text-primary: #0a0a0a;
       --text-secondary: #888888;
       --text-muted: #b2b2b2;
@@ -40,24 +41,26 @@
       padding: 0;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html, body {
       width: 100%;
-      height: 100%;
+      min-height: 100dvh;
       background-color: var(--bg-primary);
       color: var(--text-primary);
       font-family: var(--font-meta);
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
+    /* Hide native cursor on desktop fine pointers */
     @media (pointer: fine) {
       body, a, button, input, label, [role="button"] {
         cursor: none !important;
       }
     }
 
+    /* Typography Utilities */
     .font-brand {
       font-family: var(--font-brand);
       letter-spacing: 3px;
@@ -71,41 +74,82 @@
       font-variant-numeric: tabular-nums;
     }
 
+    /* Architectural 1px Hairlines */
     .hairline-t { border-top: 1px solid var(--border-hairline); }
     .hairline-b { border-bottom: 1px solid var(--border-hairline); }
     .hairline-l { border-left: 1px solid var(--border-hairline); }
     .hairline-r { border-right: 1px solid var(--border-hairline); }
     .hairline-all { border: 1px solid var(--border-hairline); }
 
-    /* Fast 0.7s 1px Geometric Viewfinder Intro */
-    #xv-intro {
+    /* Vertical Sidebar Writing Mode */
+    .vertical-meta {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      letter-spacing: 3.5px;
+    }
+
+    /* =========================================================================
+       1. ZERO-TEXT 1PX GEOMETRIC FRAME BOOT LOADER (900ms)
+    ========================================================================= */
+    #xv-loader {
       position: fixed;
       inset: 0;
-      background: #ffffff;
       z-index: 9999;
+      pointer-events: all;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.4s var(--ease-curtain), visibility 0.4s var(--ease-curtain);
+      overflow: hidden;
     }
-    #xv-intro.is-done {
-      opacity: 0;
+    #xv-loader.is-hidden {
+      pointer-events: none;
       visibility: hidden;
+    }
+    .loader-slats {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
       pointer-events: none;
     }
-    .intro-frame {
-      width: 64px;
-      height: 64px;
-      border: 1px solid #0a0a0a;
-      transition: all 0.55s var(--ease-curtain);
+    .loader-slat {
+      background: #ffffff;
+      border-right: 1px solid var(--border-subtle);
+      transform: translateY(0%);
+      will-change: transform;
     }
-    .intro-frame.expand {
-      width: calc(100vw - 32px);
-      height: calc(100vh - 32px);
-      border-color: var(--border-hairline);
+    .loader-slat:last-child {
+      border-right: none;
+    }
+    .loader-box {
+      position: relative;
+      z-index: 10;
+      width: 68px;
+      height: 68px;
+      border: 1px solid #0a0a0a;
+      will-change: width, height, opacity;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .loader-box::before,
+    .loader-box::after {
+      content: '';
+      position: absolute;
+      background: #0a0a0a;
+    }
+    .loader-box::before {
+      width: 12px;
+      height: 1px;
+    }
+    .loader-box::after {
+      width: 1px;
+      height: 12px;
     }
 
-    /* Context-Aware Smooth Custom Cursor */
+    /* =========================================================================
+       2. CONTEXT-AWARE MAGNETIC CURSOR (Desktop Only)
+    ========================================================================= */
     #xv-cursor {
       position: fixed;
       top: 0;
@@ -126,15 +170,15 @@
       justify-content: center;
     }
     #xv-cursor.mode-ring {
-      width: 36px;
-      height: 36px;
+      width: 44px;
+      height: 44px;
       background: rgba(10, 10, 10, 0.02);
       border: 1px solid rgba(10, 10, 10, 0.45);
     }
-    #xv-cursor.mode-peer {
+    #xv-cursor.mode-action {
       width: 56px;
       height: 56px;
-      background: rgba(255, 255, 255, 0.84);
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       border: 1px solid #0a0a0a;
@@ -142,7 +186,7 @@
     #xv-cursor-label {
       font-family: var(--font-meta);
       font-size: 8px;
-      font-weight: 500;
+      font-weight: 600;
       letter-spacing: 2px;
       color: #0a0a0a;
       opacity: 0;
@@ -150,348 +194,584 @@
       transition: opacity 0.2s ease, transform 0.2s var(--ease-out);
       text-transform: uppercase;
     }
-    #xv-cursor.mode-peer #xv-cursor-label {
+    #xv-cursor.mode-action #xv-cursor-label {
       opacity: 1;
       transform: scale(1);
     }
-    @media (pointer: coarse) {
+    @media (pointer: coarse), (max-width: 768px) {
       #xv-cursor { display: none !important; }
     }
 
-    /* Subtle Optical Viewfinder Sweep */
+    /* =========================================================================
+       3. OPTICAL VIEWFINDER RADAR & KINETIC ACCORDION CARDS
+    ========================================================================= */
     .radar-sweep {
       transform-origin: 500px 500px;
-      animation: sweepRotate 18s linear infinite;
+      animation: radarRotate 16s linear infinite;
     }
-    @keyframes sweepRotate {
+    @keyframes radarRotate {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
 
-    /* Peer Card Styling */
-    .peer-card {
+    @keyframes pulseRing {
+      0% { r: 90px; opacity: 0.65; }
+      100% { r: 380px; opacity: 0; }
+    }
+    .radar-pulse {
+      animation: pulseRing 4.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+
+    /* Kinetic Strip Accordion (Desktop) */
+    .kinetic-strip-container {
+      display: flex;
+      width: 100%;
+      height: 460px;
+      border: 1px solid var(--border-hairline);
+      background: #ffffff;
+      overflow: hidden;
+    }
+    .kinetic-slice {
+      position: relative;
+      height: 100%;
+      border-right: 1px solid var(--border-hairline);
+      background: #ffffff;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 28px;
+      transition: background-color 0.35s ease;
+      will-change: flex-grow, width;
+    }
+    .kinetic-slice:last-child {
+      border-right: none;
+    }
+    .kinetic-slice:hover,
+    .kinetic-slice.is-active {
+      background: var(--bg-secondary);
+    }
+    .kinetic-slice.is-dragover {
+      background: var(--bg-tertiary);
+      outline: 1px dashed #0a0a0a;
+      outline-offset: -8px;
+    }
+
+    /* Architectural Index Grid Card (Mobile & Desktop Grid Mode) */
+    .index-card {
       background: #ffffff;
       border: 1px solid var(--border-hairline);
-      transition: transform 0.45s var(--ease-out),
-                  background-color 0.3s ease,
-                  border-color 0.3s ease,
-                  box-shadow 0.45s var(--ease-out);
+      transition: transform 0.38s var(--ease-out),
+                  background-color 0.25s ease,
+                  border-color 0.25s ease,
+                  box-shadow 0.38s var(--ease-out);
     }
-    .peer-card:hover {
+    .index-card:hover {
       background: var(--bg-secondary);
       border-color: #0a0a0a;
       transform: translateY(-2px);
-      box-shadow: 0 14px 32px -12px rgba(0, 0, 0, 0.07);
+      box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.08);
     }
-    .peer-card.is-dragover {
-      background: var(--bg-secondary);
+    .index-card.is-dragover {
+      background: var(--bg-tertiary);
       border-color: #0a0a0a;
       outline: 1px dashed #0a0a0a;
       outline-offset: -6px;
-      transform: scale(1.02);
     }
 
-    /* Grayscale to Color Image Transition */
-    .preview-monochrome {
-      filter: grayscale(100%) contrast(1.08);
-      transition: filter 0.8s var(--ease-out);
+    /* Monochrome-to-Color Preview Transition */
+    .img-editorial {
+      filter: grayscale(100%) contrast(1.06);
+      transition: filter 0.65s var(--ease-out);
     }
-    .preview-monochrome.is-complete {
+    .img-editorial:hover,
+    .img-editorial.is-color {
       filter: grayscale(0%) contrast(1);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-hairline);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
     }
   </style>
 </head>
-<body class="flex flex-col h-screen w-screen justify-between select-none">
 
-  <!-- 1. 0.7S 1PX GEOMETRIC VIEWFINDER INTRO -->
-  <div id="xv-intro" aria-hidden="true">
-    <div id="intro-frame" class="intro-frame"></div>
+<body class="flex flex-col min-h-[100dvh] w-full justify-between select-none bg-white text-[#0a0a0a]">
+
+  <!-- =========================================================================
+       1. 900MS GEOMETRIC VIEWFINDER BOOT LOADER (ZERO TEXT)
+  ========================================================================== -->
+  <div id="xv-loader" aria-hidden="true">
+    <div class="loader-slats" id="loader-slats">
+      <div class="loader-slat"></div>
+      <div class="loader-slat"></div>
+      <div class="loader-slat"></div>
+      <div class="loader-slat"></div>
+      <div class="loader-slat"></div>
+      <div class="loader-slat"></div>
+      <div class="loader-slat"></div>
+      <div class="loader-slat"></div>
+      <div class="loader-slat"></div>
+    </div>
+    <div class="loader-box" id="loader-box"></div>
   </div>
 
-  <!-- 2. CONTEXT-AWARE CUSTOM CURSOR -->
+  <!-- =========================================================================
+       2. CONTEXT-AWARE MAGNETIC CURSOR
+  ========================================================================== -->
   <div id="xv-cursor">
     <span id="xv-cursor-label">SEND</span>
   </div>
 
-  <!-- Hidden File Input for Clicking a Peer Card -->
-  <input type="file" id="file-input" class="hidden" multiple />
+  <!-- Hidden Multi-File Input -->
+  <input type="file" id="global-file-input" class="hidden" multiple />
 
-  <!-- 3. TOP HEADER BAR (1PX BOTTOM HAIRLINE) -->
-  <header class="w-full h-16 hairline-b bg-white/95 backdrop-blur-sm px-4 sm:px-8 lg:px-12 flex items-center justify-between z-30 shrink-0">
-    <!-- Left: Brand Mark + / FILE Indicator -->
-    <div class="flex items-center space-x-3">
-      <a href="https://xiangvisuals.com/" target="_blank" rel="noopener" data-cursor="ring" class="font-brand text-xs sm:text-sm font-medium tracking-[3px] text-[#0a0a0a]">
-        XIANGVISUALS
-      </a>
-      <span class="text-[#b2b2b2] font-light text-xs">/</span>
-      <span class="font-meta text-[10px] tracking-[2.5px] text-[#0a0a0a] uppercase">FILE</span>
-    </div>
-
-    <!-- Center: LAN Channel Pill + Inline Edit + Minimal QR Popover Button -->
-    <div class="relative flex items-center">
-      <div class="flex items-center hairline-all bg-[#ffffff] hover:bg-[#f6f6f6] transition-colors h-8 px-3 space-x-2">
-        <span class="font-meta text-[9px] tracking-[2px] text-[#888888] uppercase hidden sm:inline">LAN CHANNEL:</span>
-        <span class="font-meta text-[9px] tracking-[1px] text-[#888888] sm:hidden">CH:</span>
-        <input
-          id="room-code-input"
-          type="text"
-          maxlength="4"
-          value="2026"
-          aria-label="LAN Channel 4-Digit Code"
-          data-cursor="ring"
-          class="w-11 bg-transparent font-meta text-[10px] font-medium tracking-[2px] text-[#0a0a0a] text-center uppercase focus:outline-none focus:bg-white select-text"
-          title="Click to edit 4-digit LAN Channel Code"
-        />
-        <span class="h-3 w-[1px] bg-[#e2e2e2]"></span>
-        <button
-          id="qr-toggle-btn"
-          type="button"
-          data-cursor="ring"
-          onclick="toggleQrPopover(event)"
-          class="font-meta text-[9px] tracking-[1.8px] text-[#888888] hover:text-[#0a0a0a] uppercase flex items-center space-x-1"
-          title="Show QR Code for Mobile LAN Pairing"
-        >
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
-            <rect x="3" y="3" width="7" height="7" />
-            <rect x="14" y="3" width="7" height="7" />
-            <rect x="3" y="14" width="7" height="7" />
-            <path d="M14 14h3v3h-3zM18 18h3v3h-3zM18 14h3M14 18h3" />
-          </svg>
-          <span class="hidden md:inline">QR</span>
-        </button>
-      </div>
-
-      <!-- Minimal QR Popover -->
-      <div
-        id="qr-popover"
-        onclick="event.stopPropagation()"
-        class="hidden absolute top-11 left-1/2 -translate-x-1/2 w-60 bg-white hairline-all p-5 shadow-xl z-50 text-center"
-      >
-        <p class="font-meta text-[9px] tracking-[2px] text-[#888888] uppercase mb-3">
-          SCAN TO JOIN CHANNEL #<span id="qr-room-label">2026</span>
-        </p>
-        <div class="w-40 h-40 mx-auto p-2 hairline-all bg-white flex items-center justify-center">
-          <img
-            id="qr-image"
-            src=""
-            alt="Channel QR Code"
-            class="w-full h-full object-contain"
-          />
+  <!-- =========================================================================
+       3. RESPONSIVE 2-TIER / SINGLE-TIER EDITORIAL HEADER
+  ========================================================================== -->
+  <header class="w-full hairline-b bg-white/95 backdrop-blur-sm z-30 shrink-0">
+    <div class="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-10 py-3 md:py-0 md:h-16 flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 md:gap-4">
+      
+      <!-- Top Row on Mobile / Left Group on Desktop: Brand + Local Device Identity -->
+      <div class="flex items-center justify-between md:justify-start md:space-x-6">
+        <div class="flex items-center space-x-2.5">
+          <a
+            href="https://xiangvisuals.com/"
+            target="_blank"
+            rel="noopener"
+            data-cursor="ring"
+            class="font-brand text-xs sm:text-sm font-medium tracking-[3px] text-[#0a0a0a] hover:opacity-70 transition-opacity"
+          >
+            XIANGVISUALS
+          </a>
+          <span class="text-[#b2b2b2] font-light text-xs">//</span>
+          <span class="font-meta text-[10px] tracking-[2.5px] text-[#0a0a0a] font-medium uppercase">FILE</span>
         </div>
-        <p class="font-meta text-[8.5px] tracking-[1.5px] text-[#b2b2b2] uppercase mt-3 leading-relaxed">
-          SAME WI-FI OR CHANNEL CODE CONNECTS DIRECTLY
-        </p>
-        <button
-          type="button"
-          data-cursor="ring"
-          onclick="copyChannelUrl()"
-          class="mt-3 w-full py-1.5 hairline-all bg-[#f6f6f6] hover:bg-[#0a0a0a] hover:text-white transition-colors font-meta text-[8.5px] tracking-[2px] uppercase"
-        >
-          COPY LINK
-        </button>
-      </div>
-    </div>
 
-    <!-- Right: Local Device Identity (Editable) & Connection State Dot -->
-    <div class="flex items-center space-x-3">
-      <div class="flex items-center space-x-1.5">
-        <span class="font-meta text-[9px] tracking-[2px] text-[#888888] uppercase hidden md:inline">YOU:</span>
+        <!-- Local Node Identity Badge (Editable) -->
         <button
           type="button"
           data-cursor="ring"
-          onclick="editLocalDeviceName()"
-          class="font-editorial text-sm sm:text-base text-[#0a0a0a] hover:underline tracking-wide flex items-center space-x-1"
+          onclick="openRenameModal()"
+          class="flex items-center space-x-2 px-2.5 py-1 hairline-all bg-[#f6f6f6] hover:border-[#0a0a0a] transition-colors min-h-[34px]"
           title="Click to rename your device"
         >
-          <span id="local-device-name">...</span>
+          <span id="mesh-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
+          <span class="font-meta text-[8.5px] tracking-[1.5px] text-[#888888] uppercase hidden sm:inline">YOU:</span>
+          <span id="my-device-name" class="font-editorial text-sm sm:text-base text-[#0a0a0a] truncate max-w-[140px] sm:max-w-[190px]">
+            Loading...
+          </span>
+          <span id="my-slot-badge" class="font-meta text-[8px] tracking-[1.2px] text-[#888888] uppercase pl-1 hairline-l">
+            S00
+          </span>
         </button>
       </div>
 
-      <div class="flex items-center space-x-1.5 pl-2 sm:pl-3 hairline-l h-4">
-        <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-        <span id="status-text" class="font-meta text-[9px] tracking-[2px] text-[#888888] uppercase">ONLINE</span>
+      <!-- Second Row on Mobile / Center-Right Group on Desktop: Channel + Rescan + QR + View Mode -->
+      <div class="flex items-center justify-between md:justify-end gap-2 sm:gap-3">
+        <!-- LAN Channel Selector + Inline QR Trigger -->
+        <div class="flex items-center hairline-all bg-white h-10 md:h-9">
+          <button
+            type="button"
+            data-cursor="ring"
+            onclick="openChannelModal()"
+            class="h-full px-3 flex items-center space-x-2 hover:bg-[#f6f6f6] transition-colors"
+            title="Switch 4-digit LAN Channel or Scan QR"
+          >
+            <span class="font-meta text-[9px] tracking-[1.8px] text-[#888888] uppercase">CHANNEL:</span>
+            <span id="header-channel-code" class="font-meta text-[11px] font-semibold tracking-[2.5px] text-[#0a0a0a]">0000</span>
+          </button>
+
+          <span class="w-[1px] h-4 bg-[#e2e2e2]"></span>
+
+          <button
+            type="button"
+            data-cursor="ring"
+            onclick="triggerManualRescan()"
+            id="rescan-btn"
+            class="h-full px-3 flex items-center space-x-1.5 hover:bg-[#f6f6f6] active:bg-[#efefef] transition-colors font-meta text-[9px] tracking-[1.8px] text-[#0a0a0a] uppercase"
+            title="Actively probe slots 00-05 & BroadcastChannel"
+          >
+            <svg id="rescan-icon" class="w-3 h-3 text-[#0a0a0a] transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+              <polyline points="21 3 21 9 15 9" />
+            </svg>
+            <span>RESCAN</span>
+          </button>
+
+          <span class="w-[1px] h-4 bg-[#e2e2e2]"></span>
+
+          <button
+            type="button"
+            data-cursor="ring"
+            onclick="openChannelModal()"
+            class="h-full px-3 flex items-center space-x-1 hover:bg-[#f6f6f6] transition-colors font-meta text-[9px] tracking-[1.8px] text-[#0a0a0a] uppercase"
+            title="Open QR Code & Channel Pairing"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+              <path d="M14 14h3v3h-3zM18 18h3v3h-3zM18 14h3M14 18h3" />
+            </svg>
+            <span class="hidden sm:inline">QR</span>
+          </button>
+        </div>
+
+        <!-- Desktop View Switcher: KINETIC STRIP vs INDEX GRID -->
+        <div class="hidden md:flex items-center hairline-all bg-white h-9 p-0.5">
+          <button
+            type="button"
+            id="view-btn-strip"
+            data-cursor="ring"
+            onclick="setDesktopViewMode('strip')"
+            class="h-full px-3 font-meta text-[8.5px] tracking-[1.8px] uppercase transition-colors bg-[#0a0a0a] text-white"
+          >
+            KINETIC STRIP
+          </button>
+          <button
+            type="button"
+            id="view-btn-grid"
+            data-cursor="ring"
+            onclick="setDesktopViewMode('grid')"
+            class="h-full px-3 font-meta text-[8.5px] tracking-[1.8px] uppercase transition-colors text-[#888888] hover:text-[#0a0a0a]"
+          >
+            INDEX GRID
+          </button>
+        </div>
+
+        <!-- Transfer Queue Tray Button -->
+        <button
+          type="button"
+          data-cursor="ring"
+          onclick="toggleTransferTray()"
+          class="h-10 md:h-9 px-3 hairline-all bg-white hover:bg-[#f6f6f6] transition-colors flex items-center space-x-2"
+          title="View Received & Sent Files"
+        >
+          <span class="font-meta text-[9px] tracking-[1.8px] text-[#0a0a0a] uppercase">QUEUE</span>
+          <span id="queue-badge-count" class="px-1.5 py-0.5 bg-[#0a0a0a] text-white font-meta text-[8.5px] tracking-[1px]">0</span>
+        </button>
       </div>
+
     </div>
   </header>
 
-  <!-- 4. CENTRAL MINIMALIST RADAR / VIEWPORT STAGE -->
-  <main
-    id="radar-stage"
-    class="relative flex-1 w-full bg-white overflow-hidden flex items-center justify-center"
-    onclick="closeQrPopover()"
-  >
-    <!-- Optical Viewfinder Background SVG (1px Concentric Hairline Rings & Crosshair) -->
-    <svg
-      class="absolute inset-0 w-full h-full pointer-events-none"
-      viewBox="0 0 1000 1000"
-      preserveAspectRatio="xMidYMid slice"
-    >
-      <!-- Subtle Crosshairs -->
-      <line x1="500" y1="0" x2="500" y2="1000" stroke="#efefef" stroke-width="1" />
-      <line x1="0" y1="500" x2="1000" y2="500" stroke="#efefef" stroke-width="1" />
+  <!-- =========================================================================
+       4. CENTRAL WORKSPACE (SIDEBAR MARGINS + OPTICAL STAGE)
+  ========================================================================== -->
+  <div class="flex-1 flex w-full max-w-[1800px] mx-auto relative overflow-hidden">
 
-      <!-- Concentric 1px Optical Rings -->
-      <circle cx="500" cy="500" r="140" fill="none" stroke="#efefef" stroke-width="1" />
-      <circle cx="500" cy="500" r="280" fill="none" stroke="#e2e2e2" stroke-width="1" stroke-dasharray="3 6" />
-      <circle cx="500" cy="500" r="420" fill="none" stroke="#efefef" stroke-width="1" />
-
-      <!-- Subtle Rotating Viewfinder Sweep Line -->
-      <g class="radar-sweep">
-        <line x1="500" y1="500" x2="500" y2="80" stroke="#e2e2e2" stroke-width="1" />
-      </g>
-    </svg>
-
-    <!-- Corner 1px Architectural Crop Marks -->
-    <div class="absolute top-5 left-5 w-4 h-4 border-t border-l border-[#e2e2e2] pointer-events-none"></div>
-    <div class="absolute top-5 right-5 w-4 h-4 border-t border-r border-[#e2e2e2] pointer-events-none"></div>
-    <div class="absolute bottom-5 left-5 w-4 h-4 border-b border-l border-[#e2e2e2] pointer-events-none"></div>
-    <div class="absolute bottom-5 right-5 w-4 h-4 border-b border-r border-[#e2e2e2] pointer-events-none"></div>
-
-    <!-- EMPTY STATE (Shown when 0 peers are in the LAN channel) -->
-    <div id="empty-state" class="relative z-10 max-w-md mx-auto px-6 text-center flex flex-col items-center">
-      <span class="font-meta text-[9px] tracking-[3px] text-[#b2b2b2] uppercase mb-2">
-        OPTICAL LAN FIELD // CHANNEL #<span id="empty-channel-code">2026</span>
+    <!-- Left Architectural Margin (Desktop > 768px Only) -->
+    <aside class="hidden md:flex w-12 hairline-r flex-col items-center justify-between py-8 shrink-0 bg-white z-10">
+      <span class="vertical-meta font-meta text-[8.5px] text-[#888888] uppercase">
+        PHOTOGRAPHY &amp; ARCHIVE TRANSFER // DALIAN, CN
       </span>
-      <h1 class="font-editorial text-3xl sm:text-4xl text-[#0a0a0a] tracking-wide font-light">
-        00 / 局域网就绪 <span class="italic">Waiting for Peers</span>
-      </h1>
-      <p class="font-meta text-[10.5px] leading-relaxed text-[#888888] tracking-[0.8px] mt-3 max-w-sm">
-        Open this page on another device in the same network or tab to transfer files directly.
-      </p>
-      <button
-        type="button"
-        data-cursor="ring"
-        onclick="openDuplicateTabForTest()"
-        class="mt-7 px-5 py-2.5 hairline-all bg-white hover:bg-[#0a0a0a] hover:text-white transition-colors font-meta text-[9.5px] tracking-[2.2px] uppercase"
-      >
-        [ + OPEN SECOND TAB TO TEST ]
-      </button>
-    </div>
+      <div class="w-[1px] h-12 bg-[#e2e2e2]"></div>
+      <span id="left-margin-channel" class="vertical-meta font-meta text-[8.5px] text-[#0a0a0a] uppercase">
+        CH // 0000
+      </span>
+    </aside>
 
-    <!-- DISCOVERED PEER NODES CONTAINER (Shown when 1+ peers are discovered) -->
-    <div
-      id="peers-stage"
-      class="hidden relative z-10 w-full max-w-5xl px-4 sm:px-8 lg:px-12 py-8 max-h-full overflow-y-auto"
-    >
-      <div id="peers-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 justify-items-center">
-        <!-- Dynamically populated with discovered LAN / Tab Peer Cards -->
+    <!-- Main Central Viewport Stage -->
+    <main id="viewport-stage" class="flex-1 relative flex flex-col items-center justify-center p-4 sm:p-6 lg:p-10 overflow-y-auto">
+
+      <!-- Subtle Optical Viewfinder Background SVG -->
+      <svg
+        class="absolute inset-0 w-full h-full pointer-events-none"
+        viewBox="0 0 1000 1000"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <line x1="500" y1="0" x2="500" y2="1000" stroke="#f3f3f3" stroke-width="1" />
+        <line x1="0" y1="500" x2="1000" y2="500" stroke="#f3f3f3" stroke-width="1" />
+        <circle cx="500" cy="500" r="130" fill="none" stroke="#efefef" stroke-width="1" />
+        <circle cx="500" cy="500" r="270" fill="none" stroke="#e5e5e5" stroke-width="1" stroke-dasharray="3 6" />
+        <circle cx="500" cy="500" r="410" fill="none" stroke="#efefef" stroke-width="1" />
+        <circle cx="500" cy="500" r="90" fill="none" stroke="#d4d4d4" stroke-width="1" class="radar-pulse" />
+        <g class="radar-sweep">
+          <line x1="500" y1="500" x2="500" y2="90" stroke="#e2e2e2" stroke-width="1" />
+        </g>
+      </svg>
+
+      <!-- Architectural 1px Corner Crop Marks -->
+      <div class="absolute top-4 left-4 w-3.5 h-3.5 border-t border-l border-[#d4d4d4] pointer-events-none"></div>
+      <div class="absolute top-4 right-4 w-3.5 h-3.5 border-t border-r border-[#d4d4d4] pointer-events-none"></div>
+      <div class="absolute bottom-4 left-4 w-3.5 h-3.5 border-b border-l border-[#d4d4d4] pointer-events-none"></div>
+      <div class="absolute bottom-4 right-4 w-3.5 h-3.5 border-b border-r border-[#d4d4d4] pointer-events-none"></div>
+
+      <!-- =====================================================================
+           A. EMPTY STATE (OPTICAL VIEWFINDER RADAR WHEN 0 PEERS CONNECTED)
+      ====================================================================== -->
+      <div id="empty-state-panel" class="relative z-10 w-full max-w-xl mx-auto my-auto py-8 px-5 sm:px-8 bg-white/90 backdrop-blur-xs hairline-all text-center flex flex-col items-center">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 hairline-all bg-[#f6f6f6] mb-4">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#0a0a0a] animate-ping"></span>
+          <span id="scan-slot-telemetry" class="font-meta text-[8.5px] tracking-[2px] text-[#0a0a0a] uppercase">
+            SCANNING SLOTS 00—05 IN CHANNEL #0000
+          </span>
+        </div>
+
+        <h1 class="font-editorial text-3xl sm:text-4xl text-[#0a0a0a] font-light tracking-wide">
+          00 / 局域网就绪 <span class="italic">Waiting for Peers</span>
+        </h1>
+
+        <p class="font-meta text-[10.5px] leading-relaxed text-[#888888] tracking-[0.6px] mt-3 max-w-md">
+          Open this page on any phone, tablet, or computer in the same network (Channel <strong id="empty-channel-num" class="text-[#0a0a0a] font-medium">#0000</strong>) or open a second tab to transfer files directly.
+        </p>
+
+        <!-- Dual Quick Actions (Generous >=44px Mobile Touch Targets) -->
+        <div class="mt-6 w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
+          <button
+            type="button"
+            data-cursor="ring"
+            onclick="openDuplicateTabForTest()"
+            class="min-h-[44px] px-5 py-2.5 bg-[#0a0a0a] text-white hover:bg-[#222222] transition-colors font-meta text-[9.5px] tracking-[2px] uppercase flex items-center justify-center"
+          >
+            [ + OPEN DUPLICATE TAB TO TEST ]
+          </button>
+
+          <button
+            type="button"
+            data-cursor="ring"
+            onclick="openChannelModal()"
+            class="min-h-[44px] px-5 py-2.5 hairline-all bg-white hover:bg-[#f6f6f6] text-[#0a0a0a] transition-colors font-meta text-[9.5px] tracking-[2px] uppercase flex items-center justify-center"
+          >
+            [ SWITCH CHANNEL / QR PAIR ]
+          </button>
+        </div>
+
+        <!-- Subtle Technical Diagnostic Strip -->
+        <div class="mt-6 pt-4 hairline-t w-full flex flex-wrap items-center justify-between gap-2 font-meta text-[8.5px] tracking-[1.5px] text-[#888888] uppercase">
+          <span id="empty-webrtc-state">WEBRTC MESH: INITIALIZING...</span>
+          <span>LOCAL TAB BRIDGE: ACTIVE</span>
+        </div>
+      </div>
+
+      <!-- =====================================================================
+           B. ACTIVE PEERS STAGE (DESKTOP KINETIC STRIP OR RESPONSIVE INDEX GRID)
+      ====================================================================== -->
+      <div id="active-peers-panel" class="hidden relative z-10 w-full max-w-6xl mx-auto my-auto">
+        <!-- Section Subheader -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-2.5 hairline-b bg-white/80 backdrop-blur-xs px-1">
+          <div class="flex items-center space-x-2">
+            <span class="font-meta text-[9px] tracking-[2.5px] text-[#888888] uppercase">DISCOVERED NODES // 已发现节点</span>
+            <span id="peer-count-pill" class="px-2 py-0.5 bg-[#f6f6f6] hairline-all font-meta text-[9px] text-[#0a0a0a] font-medium">01</span>
+          </div>
+          <span class="font-meta text-[8.5px] tracking-[1.8px] text-[#888888] uppercase">
+            TAP OR DROP FILES ON ANY DEVICE CARD TO STREAM
+          </span>
+        </div>
+
+        <!-- 1. Desktop Critically-Damped Kinetic Accordion Strip -->
+        <div id="kinetic-strip-mount" class="hidden md:flex kinetic-strip-container"></div>
+
+        <!-- 2. Responsive Index Grid (Always active on Mobile <=768px, or when Grid selected on Desktop) -->
+        <div id="index-grid-mount" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"></div>
+      </div>
+
+    </main>
+
+    <!-- Right Architectural Margin (Desktop > 768px Only) -->
+    <aside class="hidden md:flex w-12 hairline-l flex-col items-center justify-between py-8 shrink-0 bg-white z-10">
+      <span class="vertical-meta font-meta text-[8.5px] text-[#888888] uppercase">
+        64KB CHUNK STREAM // ZERO CLOUD STORAGE
+      </span>
+      <div class="w-[1px] h-12 bg-[#e2e2e2]"></div>
+      <span id="right-margin-peers" class="vertical-meta font-meta text-[8.5px] text-[#0a0a0a] uppercase">
+        NODES // 00
+      </span>
+    </aside>
+
+  </div>
+
+  <!-- =========================================================================
+       5. COLLAPSIBLE TRANSFER QUEUE & INCOMING FILE TRAY
+  ========================================================================== -->
+  <section
+    id="transfer-tray"
+    class="fixed bottom-11 left-0 right-0 z-40 bg-white hairline-t shadow-2xl transition-transform duration-500 ease-out translate-y-full"
+  >
+    <div class="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-10 py-5 max-h-[65dvh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 hairline-b shrink-0">
+        <div class="flex items-center space-x-3">
+          <span class="font-meta text-[9.5px] tracking-[2.5px] text-[#0a0a0a] font-medium uppercase">
+            ARCHIVE TRANSFER QUEUE // 传输队列
+          </span>
+          <label data-cursor="ring" class="flex items-center space-x-1.5 font-meta text-[8.5px] tracking-[1.5px] text-[#888888] uppercase cursor-pointer">
+            <input
+              type="checkbox"
+              id="auto-save-toggle"
+              checked
+              onchange="toggleAutoSave(this.checked)"
+              class="accent-[#0a0a0a] w-3.5 h-3.5"
+            />
+            <span>AUTO-SAVE INCOMING</span>
+          </label>
+        </div>
+
+        <button
+          type="button"
+          data-cursor="ring"
+          onclick="toggleTransferTray(false)"
+          class="px-3 py-1 hairline-all font-meta text-[8.5px] tracking-[2px] text-[#888888] hover:text-[#0a0a0a] uppercase"
+        >
+          [ CLOSE ✕ ]
+        </button>
+      </div>
+
+      <div id="transfer-list" class="mt-4 overflow-y-auto space-y-2.5 pr-1">
+        <p class="font-meta text-[9.5px] tracking-[1.5px] text-[#b2b2b2] uppercase py-6 text-center">
+          NO TRANSFERS YET · SELECT A PEER TO SEND FILES
+        </p>
       </div>
     </div>
-  </main>
+  </section>
 
-  <!-- 5. INCOMING FILE TRANSFER MODAL (FLIP-STYLE MINIMAL OVERLAY) -->
+  <!-- =========================================================================
+       6. CHANNEL SWITCHER & SVG QR CODE PAIRING MODAL
+  ========================================================================== -->
   <div
-    id="incoming-modal"
+    id="channel-modal"
+    onclick="closeChannelModal()"
     class="fixed inset-0 z-50 hidden items-center justify-center bg-white/85 backdrop-blur-md p-4"
   >
-    <div class="w-full max-w-md bg-white hairline-all p-6 sm:p-8 shadow-2xl flex flex-col justify-between">
-      <!-- Header -->
+    <div
+      onclick="event.stopPropagation()"
+      class="w-full max-w-md bg-white hairline-all p-6 sm:p-8 shadow-2xl flex flex-col justify-between"
+    >
       <div class="flex items-center justify-between pb-4 hairline-b">
         <div>
-          <span id="incoming-status-tag" class="font-meta text-[9px] tracking-[2.5px] text-[#888888] uppercase">
-            INCOMING P2P STREAM // 接收文件
+          <span class="font-meta text-[8.5px] tracking-[2.5px] text-[#888888] uppercase">
+            LAN PAIRING // 频道与扫码配对
           </span>
-          <h3 id="incoming-sender-name" class="font-editorial text-2xl text-[#0a0a0a] mt-0.5">
-            From: 01 / 银盐终端
+          <h3 class="font-editorial text-2xl sm:text-3xl text-[#0a0a0a] mt-0.5">
+            Channel #<span id="modal-channel-title">0000</span>
           </h3>
         </div>
         <button
           type="button"
           data-cursor="ring"
-          onclick="closeIncomingModal()"
-          class="w-7 h-7 hairline-all flex items-center justify-center font-meta text-[10px] text-[#888888] hover:text-[#0a0a0a] hover:border-[#0a0a0a] transition-colors"
+          onclick="closeChannelModal()"
+          class="w-9 h-9 hairline-all flex items-center justify-center font-meta text-xs text-[#888888] hover:text-[#0a0a0a]"
         >
           ✕
         </button>
       </div>
 
-      <!-- Visual Preview Area -->
+      <!-- 4-Digit Channel Code Editor -->
       <div class="my-5">
-        <div
-          id="incoming-image-wrap"
-          class="hidden w-full h-52 hairline-all bg-[#f6f6f6] overflow-hidden items-center justify-center mb-4"
-        >
-          <img
-            id="incoming-image-preview"
-            src=""
-            alt="Incoming Preview"
-            class="preview-monochrome w-full h-full object-contain"
+        <label class="block font-meta text-[9px] tracking-[2px] text-[#888888] uppercase mb-2">
+          ENTER 4-DIGIT CHANNEL CODE (SAME CODE ON BOTH DEVICES):
+        </label>
+        <div class="flex items-center gap-2">
+          <input
+            id="modal-channel-input"
+            type="text"
+            inputmode="numeric"
+            maxlength="4"
+            value="0000"
+            class="flex-1 h-11 px-4 hairline-all bg-[#f6f6f6] focus:bg-white focus:border-[#0a0a0a] focus:outline-none font-meta text-base tracking-[6px] text-center font-semibold uppercase select-text"
           />
+          <button
+            type="button"
+            data-cursor="ring"
+            onclick="applyChannelFromModal()"
+            class="h-11 px-5 bg-[#0a0a0a] text-white font-meta text-[9.5px] tracking-[2px] uppercase"
+          >
+            JOIN
+          </button>
         </div>
 
-        <div class="flex items-baseline justify-between gap-2">
-          <p id="incoming-file-name" class="font-editorial text-xl text-[#0a0a0a] truncate">
-            filename.raw
-          </p>
-          <span id="incoming-file-size" class="font-meta text-[10px] tracking-[1.5px] text-[#888888] shrink-0 uppercase">
-            0.0 MB
-          </span>
-        </div>
-
-        <!-- Live Progress Bar & Tabular Telemetry -->
-        <div class="mt-3">
-          <div class="w-full h-[1.5px] bg-[#efefef] overflow-hidden">
-            <div id="incoming-progress-bar" class="h-full bg-[#0a0a0a] transition-all duration-75" style="width: 0%;"></div>
-          </div>
-          <div class="flex items-center justify-between mt-2 font-meta text-[9px] tracking-[2px] text-[#888888] uppercase">
-            <span id="incoming-telemetry-pct">0%</span>
-            <span id="incoming-telemetry-speed">WAITING...</span>
-          </div>
+        <!-- Preset Quick Channel Buttons -->
+        <div class="flex items-center gap-2 mt-2.5">
+          <span class="font-meta text-[8.5px] tracking-[1.5px] text-[#888888] uppercase">PRESETS:</span>
+          <button type="button" onclick="setQuickChannel('0000')" class="px-2.5 py-1 hairline-all font-meta text-[8.5px] tracking-[1.5px] hover:bg-[#f6f6f6]">#0000 (DEFAULT)</button>
+          <button type="button" onclick="setQuickChannel('2026')" class="px-2.5 py-1 hairline-all font-meta text-[8.5px] tracking-[1.5px] hover:bg-[#f6f6f6]">#2026</button>
+          <button type="button" onclick="setQuickChannel('8888')" class="px-2.5 py-1 hairline-all font-meta text-[8.5px] tracking-[1.5px] hover:bg-[#f6f6f6]">#8888</button>
         </div>
       </div>
 
-      <!-- Actions & Auto-Download Toggle -->
-      <div class="pt-4 hairline-t flex items-center justify-between gap-4">
-        <label data-cursor="ring" class="flex items-center space-x-2 font-meta text-[9px] tracking-[1.8px] text-[#888888] uppercase">
-          <input
-            id="auto-download-checkbox"
-            type="checkbox"
-            onchange="toggleAutoDownload(this.checked)"
-            class="accent-[#0a0a0a] w-3 h-3 rounded-none"
+      <!-- Crisp QR Code Display for Instant Mobile Scan -->
+      <div class="p-4 hairline-all bg-[#f6f6f6] flex flex-col items-center text-center">
+        <div class="w-44 h-44 p-2.5 bg-white hairline-all flex items-center justify-center">
+          <img
+            id="modal-qr-img"
+            src=""
+            alt="Scan QR to join channel"
+            class="w-full h-full object-contain"
           />
-          <span>AUTO-DOWNLOAD</span>
-        </label>
+        </div>
+        <p class="font-meta text-[8.5px] tracking-[1.5px] text-[#888888] uppercase mt-3">
+          SCAN WITH PHONE CAMERA TO JOIN CHANNEL #<span id="modal-qr-code-text">0000</span> DIRECTLY
+        </p>
+      </div>
 
-        <a
-          id="incoming-download-btn"
-          href="#"
-          download
+      <div class="mt-5 pt-4 hairline-t flex items-center justify-between gap-3">
+        <button
+          type="button"
           data-cursor="ring"
-          class="pointer-events-none opacity-40 px-5 py-2.5 bg-[#0a0a0a] text-white font-meta text-[9.5px] tracking-[2px] uppercase transition-opacity"
+          onclick="copyDirectChannelLink()"
+          id="copy-link-btn"
+          class="flex-1 min-h-[42px] hairline-all bg-white hover:bg-[#f6f6f6] font-meta text-[9px] tracking-[2px] uppercase"
         >
-          [ DOWNLOAD FILE ]
-        </a>
+          [ COPY CHANNEL LINK ]
+        </button>
+        <button
+          type="button"
+          data-cursor="ring"
+          onclick="closeChannelModal()"
+          class="min-h-[42px] px-5 bg-[#0a0a0a] text-white font-meta text-[9px] tracking-[2px] uppercase"
+        >
+          DONE
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- 6. MINIMAL INLINE RENAME MODAL (NO NATIVE PROMPT) -->
+  <!-- =========================================================================
+       7. RENAME LOCAL DEVICE MODAL
+  ========================================================================== -->
   <div
     id="rename-modal"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-white/80 backdrop-blur-xs p-4"
+    onclick="closeRenameModal()"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-white/85 backdrop-blur-md p-4"
   >
-    <div class="w-full max-w-sm bg-white hairline-all p-6 shadow-xl">
-      <p class="font-meta text-[9px] tracking-[2.5px] text-[#888888] uppercase">LOCAL IDENTITY // 设备名称</p>
+    <div
+      onclick="event.stopPropagation()"
+      class="w-full max-w-sm bg-white hairline-all p-6 shadow-2xl"
+    >
+      <span class="font-meta text-[8.5px] tracking-[2.5px] text-[#888888] uppercase">
+        DEVICE ALIAS // 修改本机名称
+      </span>
+      <h3 class="font-editorial text-2xl text-[#0a0a0a] mt-0.5">Local Node Identity</h3>
       <input
-        id="rename-input"
+        id="rename-modal-input"
         type="text"
         maxlength="28"
-        class="w-full mt-3 p-2.5 hairline-all bg-[#f6f6f6] focus:bg-white focus:outline-none focus:border-[#0a0a0a] font-editorial text-xl text-[#0a0a0a] select-text"
+        class="w-full h-11 mt-4 px-3 hairline-all bg-[#f6f6f6] focus:bg-white focus:border-[#0a0a0a] focus:outline-none font-editorial text-xl text-[#0a0a0a] select-text"
       />
-      <div class="mt-4 flex justify-end space-x-2">
+      <div class="mt-5 flex justify-end gap-2">
         <button
           type="button"
           data-cursor="ring"
           onclick="closeRenameModal()"
-          class="px-4 py-1.5 hairline-all font-meta text-[9px] tracking-[2px] text-[#888888] uppercase"
+          class="min-h-[40px] px-4 hairline-all font-meta text-[9px] tracking-[2px] text-[#888888] uppercase"
         >
           CANCEL
         </button>
         <button
           type="button"
           data-cursor="ring"
-          onclick="saveDeviceName()"
-          class="px-4 py-1.5 bg-[#0a0a0a] text-white font-meta text-[9px] tracking-[2px] uppercase"
+          onclick="saveLocalDeviceName()"
+          class="min-h-[40px] px-5 bg-[#0a0a0a] text-white font-meta text-[9px] tracking-[2px] uppercase"
         >
           SAVE
         </button>
@@ -499,128 +779,209 @@
     </div>
   </div>
 
-  <!-- 7. BOTTOM MINIMAL FOOTER (1PX TOP HAIRLINE) -->
-  <footer class="w-full h-11 hairline-t bg-white px-4 sm:px-8 lg:px-12 flex items-center justify-between font-meta text-[9px] tracking-[2px] text-[#888888] uppercase z-30 shrink-0">
-    <span>END-TO-END P2P · NO SERVER STORAGE</span>
-    <span>© XIANGVISUALS</span>
+  <!-- =========================================================================
+       8. BOTTOM LIVE TELEMETRY STATUS BAR
+  ========================================================================== -->
+  <footer class="w-full h-11 hairline-t bg-white px-4 sm:px-6 lg:px-10 flex items-center justify-between font-meta text-[8.5px] sm:text-[9px] tracking-[2px] text-[#888888] uppercase z-30 shrink-0">
+    <div class="flex items-center space-x-3 truncate">
+      <span id="footer-live-telemetry" class="text-[#0a0a0a] truncate">
+        IDLE · END-TO-END P2P READY
+      </span>
+    </div>
+    <div class="flex items-center space-x-4 shrink-0">
+      <span class="hidden sm:inline">STUN: GOOGLE + CLOUDFLARE</span>
+      <span>© XIANGVISUALS</span>
+    </div>
   </footer>
 
   <!-- =========================================================================
-       PURE DUAL-TRANSPORT P2P ENGINE (WEBRTC SLOTS + BROADCASTCHANNEL)
+       APPLICATION ARCHITECTURE & DUAL-TRANSPORT P2P ENGINE
   ========================================================================== -->
   <script>
-    const EDITORIAL_DEVICE_NAMES = [
+    /***************************************************************************
+     * CONSTANTS & CONFIGURATION
+     ***************************************************************************/
+    const EDITORIAL_MONIKERS = [
       '银盐工作站 Silver Halide',
-      '光影终端 Lumina Node',
       '暗房主机 Darkroom Core',
+      '光影终端 Lumina Node',
       '灰度视场 Grayscale Optic',
       '中画幅阵列 Medium Format',
-      '几何切片 Geometric Slice',
       '徕卡终端 Monochrom Pad',
+      '几何切片 Geometric Slice',
       '极简节点 Minimalist Peer'
     ];
 
-    const MAX_ROOM_SLOTS = 6;
-    const CHUNK_SIZE = 64 * 1024; // 64KB binary chunks
+    const TOTAL_SLOTS = 6; // Slots 0 .. 5 per channel
+    const CHUNK_BYTE_SIZE = 65536; // 64 KB ArrayBuffer chunk size
+    const BUFFER_LOW_THRESHOLD = 262144; // 256 KB WebRTC backpressure threshold
+    const BUFFER_HIGH_WATERMARK = 1048576; // 1 MB pause threshold
 
-    const state = {
-      myId: 'peer-' + Math.random().toString(36).substring(2, 9),
-      roomCode: '2026',
-      deviceName: '',
-      deviceType: 'desktop', // 'desktop' | 'mobile' | 'tablet'
-      platformTag: 'WEB · P2P',
-      autoDownload: false,
-      targetPeerIdForFilePicker: null,
-
-      // Discovered Peers: Map<peerId, { id, name, deviceType, platformTag, transport, conn, progress }>
-      peers: new Map(),
-
-      // Transport 1: WebRTC PeerJS Slot Mesh
-      peerJs: null,
-      mySlotIndex: 1,
-      webrtcConns: new Map(), // peerId -> DataConnection
-      reconnectTimer: null,
-
-      // Transport 2: BroadcastChannel (Instant Multi-Tab Zero-Latency Mesh)
-      bc: null,
-
-      // Incoming File Reassembly State
-      incomingTransfers: new Map() // transferId -> { meta, chunks, receivedBytes, startTime }
+    const ICE_CONFIG = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun.cloudflare.com:3478' }
+      ]
     };
 
     /***************************************************************************
-     * 1. INITIALIZATION & FAST 0.7S VIEWFINDER INTRO
+     * GLOBAL STATE
+     ***************************************************************************/
+    const appState = {
+      nodeId: sessionStorage.getItem('xv_node_id') || ('node-' + Math.random().toString(36).substring(2, 10)),
+      channel: '0000',
+      deviceName: '',
+      deviceCategory: 'desktop', // 'desktop' | 'mobile' | 'tablet'
+      osBadge: 'WEB · P2P',
+      viewMode: 'strip', // 'strip' | 'grid' on desktop
+      hoveredPeerId: null,
+      selectedPeerForPicker: null,
+      autoSaveIncoming: true,
+
+      // Transport 1: Deterministic Multi-Slot PeerJS WebRTC Mesh
+      peerJs: null,
+      mySlot: null, // 0..5
+      slotConns: new Map(), // peerJsId -> DataConnection
+      knownSlotIds: new Set(),
+      heartbeatTimer: null,
+
+      // Transport 2: Same-Browser Instant BroadcastChannel
+      bc: null,
+
+      // Unified Deduplicated Peers Map: nodeId -> PeerRecord
+      // PeerRecord: { nodeId, name, deviceCategory, osBadge, slot, webrtcConn, viaBc, lastSeen, telemetry }
+      peers: new Map(),
+
+      // Critically-Damped ODE Accordion Physics State (for Desktop Kinetic Strip)
+      springWidths: new Map(), // nodeId -> { pos, vel }
+
+      // File Reassembly & Queue History
+      incomingStreams: new Map(), // transferId -> { meta, chunks, receivedBytes, startTime }
+      transferHistory: [] // Array of { id, direction, fileName, fileSize, peerName, status, progress, speed, chunkText, blobUrl, isImage }
+    };
+    sessionStorage.setItem('xv_node_id', appState.nodeId);
+
+    /***************************************************************************
+     * 1. BOOTSTRAP & 900MS GEOMETRIC VIEWFINDER INTRO
      ***************************************************************************/
     window.addEventListener('DOMContentLoaded', () => {
-      runFastIntro();
-      initCustomCursor();
-      detectLocalDeviceIdentity();
-      initRoomChannelFromUrlOrNetwork();
-      initFileInputListener();
-      initBroadcastChannelMesh();
-      initWebRTCSlotMesh();
+      runGeometricBootLoader();
+      initMagneticCursor();
+      initLocalIdentity();
+      initChannelFromUrl();
+      initFilePickerEvents();
+
+      // Start Dual Discovery Engines
+      startBroadcastChannelEngine();
+      startWebRTCSlotEngine();
+
+      // Start Critically-Damped ODE Loop for Kinetic Strip
+      requestAnimationFrame(stepKineticStripPhysics);
+
+      // Periodic Heartbeat & Roster Sync every 4 seconds
+      appState.heartbeatTimer = setInterval(() => {
+        runPeriodicMeshMaintenance();
+      }, 4000);
     });
 
-    function runFastIntro() {
-      const frame = document.getElementById('intro-frame');
-      const intro = document.getElementById('xv-intro');
-      requestAnimationFrame(() => {
-        if (frame) frame.classList.add('expand');
-      });
-      setTimeout(() => {
-        if (intro) intro.classList.add('is-done');
-      }, 680);
+    function runGeometricBootLoader() {
+      const loader = document.getElementById('xv-loader');
+      const box = document.getElementById('loader-box');
+      const slats = Array.from(document.querySelectorAll('.loader-slat'));
+      const start = performance.now();
+      const duration = 900;
+      const centerIdx = 4;
+
+      function frame(now) {
+        const t = Math.min(1, (now - start) / duration);
+
+        // Phase 1 (0 -> 0.45): Expand central 1px viewfinder frame
+        if (t < 0.45) {
+          const p = t / 0.45;
+          const ease = 1 - Math.pow(1 - p, 3);
+          box.style.width = `${68 + ease * 180}px`;
+          box.style.height = `${68 + ease * 180}px`;
+          box.style.opacity = `${1 - ease * 0.4}`;
+        } else {
+          // Phase 2 (0.45 -> 1.0): Inverted-V slat drop cascade
+          box.style.opacity = '0';
+          const p2 = (t - 0.45) / 0.55;
+          slats.forEach((slat, idx) => {
+            const dist = Math.abs(idx - centerIdx);
+            const delay = dist * 0.06;
+            const localP = Math.max(0, Math.min(1, (p2 - delay) / (1 - 0.28)));
+            const easeInOut = localP < 0.5
+              ? 4 * localP * localP * localP
+              : 1 - Math.pow(-2 * localP + 2, 3) / 2;
+            slat.style.transform = `translateY(${easeInOut * 102}%)`;
+          });
+        }
+
+        if (t < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          loader.classList.add('is-hidden');
+        }
+      }
+      requestAnimationFrame(frame);
     }
 
-    function initCustomCursor() {
+    /***************************************************************************
+     * 2. CONTEXT-AWARE MAGNETIC CURSOR (LERPED 0.42)
+     ***************************************************************************/
+    function initMagneticCursor() {
       const cursor = document.getElementById('xv-cursor');
       const label = document.getElementById('xv-cursor-label');
       if (!cursor || window.matchMedia('(pointer: coarse)').matches) return;
 
       let mouseX = -100, mouseY = -100;
-      let curX = -100, curY = -100;
+      let cursorX = -100, cursorY = -100;
 
       window.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
         mouseY = e.clientY;
 
         const target = e.target.closest('[data-cursor]');
-        cursor.classList.remove('mode-ring', 'mode-peer');
+        cursor.classList.remove('mode-ring', 'mode-action');
         if (target) {
           const mode = target.getAttribute('data-cursor');
-          const text = target.getAttribute('data-cursor-label');
-          if (mode === 'peer') {
-            cursor.classList.add('mode-peer');
-            label.textContent = text || 'SEND';
+          const actionText = target.getAttribute('data-cursor-label');
+          if (mode === 'action') {
+            cursor.classList.add('mode-action');
+            label.textContent = actionText || 'SEND';
           } else if (mode === 'ring') {
             cursor.classList.add('mode-ring');
           }
         }
       });
 
-      function tick() {
-        curX += (mouseX - curX) * 0.45;
-        curY += (mouseY - curY) * 0.45;
-        cursor.style.transform = `translate3d(${curX}px, ${curY}px, 0) translate(-50%, -50%)`;
-        requestAnimationFrame(tick);
+      function updateCursor() {
+        cursorX += (mouseX - cursorX) * 0.42;
+        cursorY += (mouseY - cursorY) * 0.42;
+        cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+        requestAnimationFrame(updateCursor);
       }
-      requestAnimationFrame(tick);
+      requestAnimationFrame(updateCursor);
     }
 
-    function detectLocalDeviceIdentity() {
+    /***************************************************************************
+     * 3. LOCAL IDENTITY & ZERO-EXTERNAL-IP CHANNEL INITIALIZATION
+     ***************************************************************************/
+    function initLocalIdentity() {
       const ua = navigator.userAgent || '';
       let os = 'DESKTOP';
-      let type = 'desktop';
+      let category = 'desktop';
 
       if (/iPad|Tablet/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
         os = 'IPADOS';
-        type = 'tablet';
+        category = 'tablet';
       } else if (/iPhone|iPod/i.test(ua)) {
         os = 'IOS';
-        type = 'mobile';
+        category = 'mobile';
       } else if (/Android/i.test(ua)) {
         os = 'ANDROID';
-        type = /Mobile/i.test(ua) ? 'mobile' : 'tablet';
+        category = /Mobile/i.test(ua) ? 'mobile' : 'tablet';
       } else if (/Mac/i.test(ua)) {
         os = 'MACOS';
       } else if (/Win/i.test(ua)) {
@@ -629,374 +990,523 @@
         os = 'LINUX';
       }
 
-      state.deviceType = type;
-      state.platformTag = `${os} · WEBRTC P2P`;
+      appState.deviceCategory = category;
+      appState.osBadge = os;
 
-      const savedName = sessionStorage.getItem('xv_device_name');
+      const savedName = localStorage.getItem('xv_device_alias');
       if (savedName) {
-        state.deviceName = savedName;
+        appState.deviceName = savedName;
       } else {
-        const hash = state.myId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-        state.deviceName = EDITORIAL_DEVICE_NAMES[hash % EDITORIAL_DEVICE_NAMES.length];
+        const hash = appState.nodeId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+        appState.deviceName = EDITORIAL_MONIKERS[hash % EDITORIAL_MONIKERS.length];
       }
 
-      document.getElementById('local-device-name').textContent = state.deviceName;
+      document.getElementById('my-device-name').textContent = appState.deviceName;
     }
 
-    function initRoomChannelFromUrlOrNetwork() {
+    function initChannelFromUrl() {
       const params = new URLSearchParams(window.location.search);
-      const urlRoom = (params.get('channel') || params.get('room') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase();
-
-      if (urlRoom && urlRoom.length === 4) {
-        state.roomCode = urlRoom;
-      } else {
-        // Default shared deterministic code so devices opening xiangvisuals.com/file land in the same channel immediately
-        state.roomCode = '2026';
-      }
-
-      updateRoomChannelUI();
-
-      // Fetch public IP hash asynchronously so devices on the same Wi-Fi router share a deterministic LAN channel code if no URL param was forced
-      if (!urlRoom) {
-        fetch('https://api.ipify.org?format=json')
-          .then(r => r.json())
-          .then(data => {
-            if (data && data.ip) {
-              let hash = 0;
-              for (let i = 0; i < data.ip.length; i++) {
-                hash = ((hash << 5) - hash) + data.ip.charCodeAt(i);
-                hash |= 0;
-              }
-              const lanCode = String(1000 + (Math.abs(hash) % 9000));
-              if (lanCode !== state.roomCode) {
-                switchRoomChannel(lanCode);
-              }
-            }
-          })
-          .catch(() => {
-            // Keep default 2026 channel if offline or blocked
-          });
-      }
-
-      const input = document.getElementById('room-code-input');
-      input.addEventListener('change', () => {
-        const cleaned = input.value.trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-        if (cleaned.length === 4 && cleaned !== state.roomCode) {
-          switchRoomChannel(cleaned);
-        } else {
-          input.value = state.roomCode;
-        }
-      });
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') input.blur();
-      });
+      const rawRoom = (params.get('room') || params.get('channel') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase();
+      appState.channel = (rawRoom && rawRoom.length === 4) ? rawRoom : '0000';
+      syncChannelUILabels();
     }
 
-    function switchRoomChannel(newCode) {
-      state.roomCode = newCode;
-      updateRoomChannelUI();
+    function syncChannelUILabels() {
+      const ch = appState.channel;
+      document.getElementById('header-channel-code').textContent = ch;
+      document.getElementById('left-margin-channel').textContent = `CH // ${ch}`;
+      document.getElementById('empty-channel-num').textContent = `#${ch}`;
+      document.getElementById('modal-channel-title').textContent = ch;
+      document.getElementById('modal-channel-input').value = ch;
+      document.getElementById('modal-qr-code-text').textContent = ch;
+      document.getElementById('scan-slot-telemetry').textContent = `SCANNING SLOTS 00—05 IN CHANNEL #${ch}`;
 
-      // Clear old peers and reconnect on the new channel
-      state.peers.clear();
-      renderPeersStage();
-
-      if (state.bc) {
-        state.bc.postMessage({
-          type: 'ANNOUNCE',
-          roomCode: state.roomCode,
-          peer: getMyPublicDescriptor()
-        });
-      }
-      initWebRTCSlotMesh();
-    }
-
-    function updateRoomChannelUI() {
-      document.getElementById('room-code-input').value = state.roomCode;
-      document.getElementById('empty-channel-code').textContent = state.roomCode;
-      document.getElementById('qr-room-label').textContent = state.roomCode;
-
-      const shareUrl = `${window.location.origin}${window.location.pathname}?channel=${state.roomCode}`;
-      const qrImg = document.getElementById('qr-image');
+      const shareUrl = `${window.location.origin}${window.location.pathname}?room=${ch}`;
+      const qrImg = document.getElementById('modal-qr-img');
       if (qrImg) {
-        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=0a0a0a&bgcolor=ffffff&data=${encodeURIComponent(shareUrl)}`;
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&color=0a0a0a&bgcolor=ffffff&data=${encodeURIComponent(shareUrl)}`;
       }
     }
 
-    function getMyPublicDescriptor() {
+    function getMyDescriptor() {
       return {
-        id: state.myId,
-        name: state.deviceName,
-        deviceType: state.deviceType,
-        platformTag: state.platformTag
+        nodeId: appState.nodeId,
+        name: appState.deviceName,
+        deviceCategory: appState.deviceCategory,
+        osBadge: appState.osBadge,
+        slot: appState.mySlot,
+        peerJsId: appState.peerJs ? appState.peerJs.id : null
       };
     }
 
     /***************************************************************************
-     * 2. TRANSPORT 2: INSTANT BROADCASTCHANNEL MESH (MULTI-TAB FALLBACK)
+     * 4. ENGINE A: SAME-BROWSER INSTANT BROADCASTCHANNEL BRIDGE (<15ms)
      ***************************************************************************/
-    function initBroadcastChannelMesh() {
+    function startBroadcastChannelEngine() {
       if (!('BroadcastChannel' in window)) return;
-      state.bc = new BroadcastChannel('xv_pure_lan_file_mesh');
+      if (appState.bc) {
+        try { appState.bc.close(); } catch (e) {}
+      }
 
-      state.bc.onmessage = (ev) => {
-        const msg = ev.data;
-        if (!msg || msg.from === state.myId || msg.roomCode !== state.roomCode) return;
+      appState.bc = new BroadcastChannel(`xv_lan_channel_${appState.channel}`);
 
-        if (msg.type === 'ANNOUNCE') {
-          upsertPeer(msg.peer, 'LOCAL MESH', null);
-          state.bc.postMessage({
-            type: 'ANNOUNCE_ACK',
-            from: state.myId,
-            to: msg.peer.id,
-            roomCode: state.roomCode,
-            peer: getMyPublicDescriptor()
+      appState.bc.onmessage = (event) => {
+        const packet = event.data;
+        if (!packet || packet.fromNodeId === appState.nodeId) return;
+
+        if (packet.type === 'BC_HELLO') {
+          registerOrUpdatePeer(packet.descriptor, { viaBc: true });
+          appState.bc.postMessage({
+            type: 'BC_HELLO_ACK',
+            fromNodeId: appState.nodeId,
+            toNodeId: packet.fromNodeId,
+            descriptor: getMyDescriptor()
           });
-        } else if (msg.type === 'ANNOUNCE_ACK' && msg.to === state.myId) {
-          upsertPeer(msg.peer, 'LOCAL MESH', null);
-        } else if (msg.type === 'PEER_LEFT') {
-          removePeer(msg.from);
-        } else if (msg.type === 'FILE_START' && msg.to === state.myId) {
-          onIncomingFileStart(msg);
-        } else if (msg.type === 'FILE_CHUNK' && msg.to === state.myId) {
-          onIncomingFileChunk(msg);
+        } else if (packet.type === 'BC_HELLO_ACK' && packet.toNodeId === appState.nodeId) {
+          registerOrUpdatePeer(packet.descriptor, { viaBc: true });
+        } else if (packet.type === 'BC_BYE') {
+          removePeerByNodeId(packet.fromNodeId);
+        } else if (packet.type === 'FILE_START' && packet.toNodeId === appState.nodeId) {
+          handleIncomingFileStart(packet);
+        } else if (packet.type === 'FILE_CHUNK' && packet.toNodeId === appState.nodeId) {
+          handleIncomingFileChunk(packet);
+        } else if (packet.type === 'FILE_END' && packet.toNodeId === appState.nodeId) {
+          handleIncomingFileEnd(packet);
         }
       };
 
-      // Announce presence
-      state.bc.postMessage({
-        type: 'ANNOUNCE',
-        from: state.myId,
-        roomCode: state.roomCode,
-        peer: getMyPublicDescriptor()
+      // Announce immediately
+      appState.bc.postMessage({
+        type: 'BC_HELLO',
+        fromNodeId: appState.nodeId,
+        descriptor: getMyDescriptor()
       });
 
       window.addEventListener('beforeunload', () => {
-        if (state.bc) {
-          state.bc.postMessage({
-            type: 'PEER_LEFT',
-            from: state.myId,
-            roomCode: state.roomCode
+        if (appState.bc) {
+          appState.bc.postMessage({
+            type: 'BC_BYE',
+            fromNodeId: appState.nodeId
           });
         }
       });
     }
 
     /***************************************************************************
-     * 3. TRANSPORT 1: DETERMINISTIC WEBRTC ROOM SLOT MESH (PEERJS)
+     * 5. ENGINE B: DETERMINISTIC MULTI-SLOT WEBRTC MESH (SLOTS 0..5)
      ***************************************************************************/
-    function initWebRTCSlotMesh() {
-      if (typeof Peer === 'undefined') return;
-
-      if (state.peerJs) {
-        try { state.peerJs.destroy(); } catch (e) {}
-        state.peerJs = null;
-      }
-      if (state.reconnectTimer) {
-        clearInterval(state.reconnectTimer);
-      }
-
-      claimSlotInRoom(1);
+    function getSlotPeerId(channel, slotIndex) {
+      return `xv-lan-${channel.toLowerCase()}-slot-${slotIndex}`;
     }
 
-    function claimSlotInRoom(slotIndex) {
-      if (slotIndex > MAX_ROOM_SLOTS) return;
-      const slotPeerId = `xv-lan-${state.roomCode.toLowerCase()}-slot-${slotIndex}`;
+    function startWebRTCSlotEngine() {
+      if (typeof Peer === 'undefined') {
+        document.getElementById('empty-webrtc-state').textContent = 'WEBRTC: PEERJS OFFLINE (LOCAL TAB MODE)';
+        return;
+      }
 
-      const peer = new Peer(slotPeerId, { debug: 0 });
+      if (appState.peerJs) {
+        try { appState.peerJs.destroy(); } catch (e) {}
+        appState.peerJs = null;
+      }
+      appState.slotConns.clear();
+      appState.mySlot = null;
 
-      peer.on('open', () => {
-        state.peerJs = peer;
-        state.mySlotIndex = slotIndex;
-        setConnectionStatus('ONLINE', true);
+      tryClaimSlot(0);
+    }
 
-        // Connect to all other slots in the same LAN channel
-        dialOtherRoomSlots();
-        state.reconnectTimer = setInterval(dialOtherRoomSlots, 6000);
+    function tryClaimSlot(slotIndex) {
+      if (slotIndex >= TOTAL_SLOTS) {
+        // Fallback random ID in same channel if all 6 deterministic slots are busy
+        const fallbackId = `xv-lan-${appState.channel.toLowerCase()}-ext-${Math.random().toString(36).substring(2, 6)}`;
+        initializePeerInstance(fallbackId, 99);
+        return;
+      }
+
+      const candidateId = getSlotPeerId(appState.channel, slotIndex);
+      initializePeerInstance(candidateId, slotIndex);
+    }
+
+    function initializePeerInstance(peerId, slotIndex) {
+      const peer = new Peer(peerId, {
+        config: ICE_CONFIG,
+        debug: 0
+      });
+
+      peer.on('open', (id) => {
+        appState.peerJs = peer;
+        appState.mySlot = slotIndex;
+
+        const slotLabel = slotIndex < TOTAL_SLOTS ? `S0${slotIndex}` : 'EXT';
+        document.getElementById('my-slot-badge').textContent = slotLabel;
+        document.getElementById('empty-webrtc-state').textContent = `WEBRTC MESH: ACTIVE (${slotLabel})`;
+        document.getElementById('mesh-status-dot').className = 'w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0';
+
+        // Re-announce updated descriptor on BroadcastChannel
+        if (appState.bc) {
+          appState.bc.postMessage({
+            type: 'BC_HELLO',
+            fromNodeId: appState.nodeId,
+            descriptor: getMyDescriptor()
+          });
+        }
+
+        // Probe all deterministic slots 0..5 immediately
+        probeAllChannelSlots();
       });
 
       peer.on('connection', (conn) => {
-        bindWebRTCDataConnection(conn);
+        setupWebRTCDataConnection(conn);
       });
 
       peer.on('error', (err) => {
-        if (err && err.type === 'unavailable-id') {
-          // Slot is occupied by another device in this room; claim next slot
+        if (err && err.type === 'unavailable-id' && slotIndex < TOTAL_SLOTS) {
           try { peer.destroy(); } catch (e) {}
-          claimSlotInRoom(slotIndex + 1);
+          tryClaimSlot(slotIndex + 1);
         }
       });
     }
 
-    function dialOtherRoomSlots() {
-      if (!state.peerJs || state.peerJs.disconnected) return;
+    function probeAllChannelSlots() {
+      if (!appState.peerJs || appState.peerJs.disconnected || appState.peerJs.destroyed) return;
 
-      for (let s = 1; s <= MAX_ROOM_SLOTS; s++) {
-        if (s === state.mySlotIndex) continue;
-        const targetSlotId = `xv-lan-${state.roomCode.toLowerCase()}-slot-${s}`;
-
-        // Only dial if we don't already have an open connection to that slot
-        let alreadyConnected = false;
-        state.webrtcConns.forEach((conn) => {
-          if (conn.peer === targetSlotId && conn.open) alreadyConnected = true;
-        });
-
-        if (!alreadyConnected) {
-          try {
-            const conn = state.peerJs.connect(targetSlotId, { reliable: true });
-            bindWebRTCDataConnection(conn);
-          } catch (e) {}
-        }
+      for (let s = 0; s < TOTAL_SLOTS; s++) {
+        if (s === appState.mySlot) continue;
+        const targetPeerJsId = getSlotPeerId(appState.channel, s);
+        connectToPeerJsId(targetPeerJsId);
       }
+
+      // Also connect to any extra peer IDs learned via ROSTER_SYNC
+      appState.knownSlotIds.forEach((remotePeerJsId) => {
+        if (remotePeerJsId !== appState.peerJs.id) {
+          connectToPeerJsId(remotePeerJsId);
+        }
+      });
     }
 
-    function bindWebRTCDataConnection(conn) {
+    function connectToPeerJsId(targetPeerJsId) {
+      if (!targetPeerJsId || !appState.peerJs || targetPeerJsId === appState.peerJs.id) return;
+
+      const existing = appState.slotConns.get(targetPeerJsId);
+      if (existing && existing.open) return;
+
+      try {
+        const conn = appState.peerJs.connect(targetPeerJsId, {
+          reliable: true
+        });
+        setupWebRTCDataConnection(conn);
+      } catch (e) {}
+    }
+
+    function setupWebRTCDataConnection(conn) {
       conn.on('open', () => {
+        appState.slotConns.set(conn.peer, conn);
+        appState.knownSlotIds.add(conn.peer);
+
+        // Send HELLO + Full Roster Sync
         conn.send({
-          type: 'HELLO',
-          peer: getMyPublicDescriptor()
+          type: 'W_HELLO',
+          descriptor: getMyDescriptor(),
+          roster: getKnownPeerJsRoster()
         });
       });
 
       conn.on('data', (data) => {
         if (!data || !data.type) return;
 
-        if (data.type === 'HELLO' && data.peer) {
-          if (data.peer.id === state.myId) {
+        if (data.type === 'W_HELLO' && data.descriptor) {
+          if (data.descriptor.nodeId === appState.nodeId) {
             conn.close();
             return;
           }
-          state.webrtcConns.set(data.peer.id, conn);
-          conn._logicalPeerId = data.peer.id;
-          upsertPeer(data.peer, 'WEBRTC P2P', conn);
+          conn._nodeId = data.descriptor.nodeId;
+          registerOrUpdatePeer(data.descriptor, { webrtcConn: conn });
+
+          // Process incoming roster of other slots/peers
+          if (Array.isArray(data.roster)) {
+            data.roster.forEach((pid) => {
+              if (pid && pid !== appState.peerJs?.id) {
+                appState.knownSlotIds.add(pid);
+                connectToPeerJsId(pid);
+              }
+            });
+          }
+
+          // Reply with ROSTER_SYNC so the remote peer also gets full visibility
+          conn.send({
+            type: 'W_ROSTER_SYNC',
+            descriptor: getMyDescriptor(),
+            roster: getKnownPeerJsRoster()
+          });
+        } else if (data.type === 'W_ROSTER_SYNC' && data.descriptor) {
+          conn._nodeId = data.descriptor.nodeId;
+          registerOrUpdatePeer(data.descriptor, { webrtcConn: conn });
+          if (Array.isArray(data.roster)) {
+            data.roster.forEach((pid) => {
+              if (pid && pid !== appState.peerJs?.id) {
+                appState.knownSlotIds.add(pid);
+                connectToPeerJsId(pid);
+              }
+            });
+          }
         } else if (data.type === 'FILE_START') {
-          onIncomingFileStart(data);
+          handleIncomingFileStart(data);
         } else if (data.type === 'FILE_CHUNK') {
-          onIncomingFileChunk(data);
+          handleIncomingFileChunk(data);
+        } else if (data.type === 'FILE_END') {
+          handleIncomingFileEnd(data);
         }
       });
 
       conn.on('close', () => {
-        if (conn._logicalPeerId) {
-          state.webrtcConns.delete(conn._logicalPeerId);
-          removePeer(conn._logicalPeerId);
+        appState.slotConns.delete(conn.peer);
+        if (conn._nodeId) {
+          const peer = appState.peers.get(conn._nodeId);
+          if (peer) {
+            peer.webrtcConn = null;
+            // Only remove peer if it isn't also connected via BroadcastChannel
+            if (!peer.viaBc) {
+              removePeerByNodeId(conn._nodeId);
+            } else {
+              renderPeersWorkspace();
+            }
+          }
         }
       });
     }
 
-    function setConnectionStatus(label, ok) {
-      const dot = document.getElementById('status-dot');
-      const txt = document.getElementById('status-text');
-      if (dot) dot.className = `w-1.5 h-1.5 rounded-full ${ok ? 'bg-emerald-600' : 'bg-[#b2b2b2]'}`;
-      if (txt) txt.textContent = label;
+    function getKnownPeerJsRoster() {
+      const list = new Set();
+      if (appState.peerJs && appState.peerJs.id) list.add(appState.peerJs.id);
+      appState.slotConns.forEach((c, pid) => {
+        if (c.open) list.add(pid);
+      });
+      return Array.from(list);
+    }
+
+    function runPeriodicMeshMaintenance() {
+      // Re-announce on BroadcastChannel
+      if (appState.bc) {
+        appState.bc.postMessage({
+          type: 'BC_HELLO',
+          fromNodeId: appState.nodeId,
+          descriptor: getMyDescriptor()
+        });
+      }
+      // Probe WebRTC slots
+      probeAllChannelSlots();
+    }
+
+    function triggerManualRescan() {
+      const icon = document.getElementById('rescan-icon');
+      if (icon) {
+        icon.style.transform = 'rotate(360deg)';
+        setTimeout(() => { icon.style.transform = 'rotate(0deg)'; }, 520);
+      }
+      setFooterTelemetry(`RESCANNING CHANNEL #${appState.channel} (SLOTS 00—05)...`);
+      runPeriodicMeshMaintenance();
     }
 
     /***************************************************************************
-     * 4. PEER MANAGEMENT & VIEWPORT STAGE RENDERING
+     * 6. PEER DEDUPLICATION & WORKSPACE RENDERING (STRIP + GRID)
      ***************************************************************************/
-    function upsertPeer(peerDesc, transportType, conn) {
-      if (!peerDesc || peerDesc.id === state.myId) return;
-      const existing = state.peers.get(peerDesc.id);
+    function registerOrUpdatePeer(descriptor, transportPatch) {
+      if (!descriptor || !descriptor.nodeId || descriptor.nodeId === appState.nodeId) return;
 
-      state.peers.set(peerDesc.id, {
-        id: peerDesc.id,
-        name: peerDesc.name,
-        deviceType: peerDesc.deviceType || 'desktop',
-        platformTag: peerDesc.platformTag || 'WEBRTC P2P',
-        transport: transportType,
-        conn: conn || (existing ? existing.conn : null),
+      const existing = appState.peers.get(descriptor.nodeId);
+      const updated = {
+        nodeId: descriptor.nodeId,
+        name: descriptor.name || 'Unknown Node',
+        deviceCategory: descriptor.deviceCategory || 'desktop',
+        osBadge: descriptor.osBadge || 'LAN P2P',
+        slot: descriptor.slot !== undefined ? descriptor.slot : (existing ? existing.slot : null),
+        webrtcConn: transportPatch.webrtcConn || (existing ? existing.webrtcConn : null),
+        viaBc: transportPatch.viaBc !== undefined ? transportPatch.viaBc : (existing ? existing.viaBc : false),
+        lastSeen: Date.now(),
         telemetry: existing ? existing.telemetry : null
-      });
+      };
 
-      renderPeersStage();
+      appState.peers.set(descriptor.nodeId, updated);
+
+      if (!appState.springWidths.has(descriptor.nodeId)) {
+        appState.springWidths.set(descriptor.nodeId, { pos: 1, vel: 0 });
+      }
+
+      renderPeersWorkspace();
     }
 
-    function removePeer(peerId) {
-      if (state.peers.has(peerId)) {
-        state.peers.delete(peerId);
-        renderPeersStage();
+    function removePeerByNodeId(nodeId) {
+      if (appState.peers.has(nodeId)) {
+        appState.peers.delete(nodeId);
+        appState.springWidths.delete(nodeId);
+        renderPeersWorkspace();
       }
     }
 
-    function renderPeersStage() {
-      const emptyEl = document.getElementById('empty-state');
-      const peersStage = document.getElementById('peers-stage');
-      const grid = document.getElementById('peers-grid');
+    function setDesktopViewMode(mode) {
+      appState.viewMode = mode;
+      const stripBtn = document.getElementById('view-btn-strip');
+      const gridBtn = document.getElementById('view-btn-grid');
 
-      const peerArray = Array.from(state.peers.values());
+      if (mode === 'strip') {
+        stripBtn.className = 'h-full px-3 font-meta text-[8.5px] tracking-[1.8px] uppercase transition-colors bg-[#0a0a0a] text-white';
+        gridBtn.className = 'h-full px-3 font-meta text-[8.5px] tracking-[1.8px] uppercase transition-colors text-[#888888] hover:text-[#0a0a0a]';
+      } else {
+        gridBtn.className = 'h-full px-3 font-meta text-[8.5px] tracking-[1.8px] uppercase transition-colors bg-[#0a0a0a] text-white';
+        stripBtn.className = 'h-full px-3 font-meta text-[8.5px] tracking-[1.8px] uppercase transition-colors text-[#888888] hover:text-[#0a0a0a]';
+      }
+      renderPeersWorkspace();
+    }
 
-      if (peerArray.length === 0) {
-        emptyEl.classList.remove('hidden');
-        peersStage.classList.add('hidden');
-        grid.innerHTML = '';
+    function renderPeersWorkspace() {
+      const peerList = Array.from(appState.peers.values());
+      const countStr = String(peerList.length).padStart(2, '0');
+
+      document.getElementById('right-margin-peers').textContent = `NODES // ${countStr}`;
+      document.getElementById('peer-count-pill').textContent = countStr;
+
+      const emptyPanel = document.getElementById('empty-state-panel');
+      const activePanel = document.getElementById('active-peers-panel');
+      const stripMount = document.getElementById('kinetic-strip-mount');
+      const gridMount = document.getElementById('index-grid-mount');
+
+      if (peerList.length === 0) {
+        emptyPanel.classList.remove('hidden');
+        activePanel.classList.add('hidden');
+        stripMount.innerHTML = '';
+        gridMount.innerHTML = '';
         return;
       }
 
-      emptyEl.classList.add('hidden');
-      peersStage.classList.remove('hidden');
+      emptyPanel.classList.add('hidden');
+      activePanel.classList.remove('hidden');
 
-      // Adjust grid columns cleanly based on number of discovered peers
-      if (peerArray.length === 1) {
-        grid.className = 'grid grid-cols-1 max-w-sm mx-auto gap-5';
-      } else if (peerArray.length === 2) {
-        grid.className = 'grid grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto gap-6';
+      const isMobileViewport = window.innerWidth <= 768;
+
+      if (!isMobileViewport && appState.viewMode === 'strip') {
+        stripMount.classList.remove('hidden');
+        stripMount.classList.add(' flex');
+        gridMount.classList.add('hidden');
       } else {
-        grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6';
+        stripMount.classList.add('hidden');
+        stripMount.classList.remove('flex');
+        gridMount.classList.remove('hidden');
       }
 
-      grid.innerHTML = peerArray.map((peer, idx) => {
-        const indexStr = String(idx + 1).padStart(2, '0');
+      // Render Desktop Kinetic Accordion Slices
+      stripMount.innerHTML = peerList.map((peer, idx) => {
+        const indexNum = String(idx + 1).padStart(2, '0');
+        const transportBadge = (peer.webrtcConn && peer.webrtcConn.open)
+          ? 'WEBRTC DIRECT'
+          : 'LOCAL TAB BRIDGE';
+        const slotTag = (peer.slot !== null && peer.slot < TOTAL_SLOTS) ? `SLOT 0${peer.slot}` : 'MESH';
         const tel = peer.telemetry;
 
         return `
           <div
-            id="peer-card-${peer.id}"
-            role="button"
-            tabindex="0"
-            data-cursor="peer"
+            id="slice-${peer.nodeId}"
+            data-node-id="${peer.nodeId}"
+            data-cursor="action"
             data-cursor-label="SEND"
-            onclick="triggerFileSelectForPeer('${peer.id}')"
-            ondragover="onPeerDragOver(event, '${peer.id}')"
-            ondragleave="onPeerDragLeave(event, '${peer.id}')"
-            ondrop="onPeerDrop(event, '${peer.id}')"
-            class="peer-card w-full p-6 sm:p-7 flex flex-col justify-between text-left relative"
+            onmouseenter="onSliceHover('${peer.nodeId}')"
+            onmouseleave="onSliceLeave()"
+            onclick="selectPeerToSendFiles('${peer.nodeId}')"
+            ondragover="handlePeerDragOver(event, '${peer.nodeId}')"
+            ondragleave="handlePeerDragLeave(event, '${peer.nodeId}')"
+            ondrop="handlePeerDrop(event, '${peer.nodeId}')"
+            class="kinetic-slice cursor-pointer"
+            style="flex: 1 1 0%;"
           >
-            <!-- Top Row: Index Counter + Minimal 1px Device SVG -->
+            <!-- Top Metadata Header -->
             <div class="flex items-center justify-between pb-4 hairline-b">
               <div class="flex items-baseline space-x-2">
-                <span class="font-editorial text-3xl text-[#0a0a0a] font-light">${indexStr}</span>
-                <span class="font-meta text-[8.5px] tracking-[2px] text-[#888888] uppercase">/ PEER</span>
+                <span class="font-editorial text-4xl text-[#0a0a0a] font-light">${indexNum}</span>
+                <span class="font-meta text-[8.5px] tracking-[2px] text-[#888888] uppercase">/ ${slotTag}</span>
               </div>
-              <div class="w-8 h-8 hairline-all flex items-center justify-center text-[#0a0a0a]">
-                ${getDeviceSvgIcon(peer.deviceType)}
+              <div class="w-9 h-9 hairline-all bg-white flex items-center justify-center text-[#0a0a0a]">
+                ${getDeviceCategorySvg(peer.deviceCategory)}
               </div>
             </div>
 
-            <!-- Middle Row: Editorial Device Name & Platform Tag -->
-            <div class="my-6">
-              <span class="font-meta text-[9px] tracking-[2px] text-[#888888] uppercase block">
-                ${escapeHtml(peer.platformTag)}
-              </span>
-              <h2 class="font-editorial text-2xl sm:text-3xl text-[#0a0a0a] font-light tracking-wide mt-1 truncate">
+            <!-- Center Editorial Device Name -->
+            <div class="my-auto py-6">
+              <div class="flex items-center space-x-2 mb-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                <span class="font-meta text-[8.5px] tracking-[2px] text-[#888888] uppercase">
+                  ${escapeHtml(peer.osBadge)} · ${transportBadge}
+                </span>
+              </div>
+              <h2 class="font-editorial text-3xl lg:text-4xl text-[#0a0a0a] font-light tracking-wide break-words">
                 ${escapeHtml(peer.name)}
               </h2>
+              <p class="font-meta text-[9px] tracking-[1.8px] text-[#b2b2b2] uppercase mt-3">
+                CLICK TO SELECT FILES OR DRAG &amp; DROP HERE
+              </p>
             </div>
 
-            <!-- Bottom Row: Drop Hint or Active 1.5px Progress Bar & Live Tabular Telemetry -->
-            <div class="pt-3 hairline-t">
-              ${tel ? `
-                <div>
-                  <div class="w-full h-[1.5px] bg-[#efefef] overflow-hidden mb-2">
-                    <div class="h-full bg-[#0a0a0a] transition-all duration-75" style="width: ${tel.pct}%;"></div>
-                  </div>
-                  <div class="flex items-center justify-between font-meta text-[9px] tracking-[1.8px] text-[#0a0a0a] uppercase">
-                    <span>${tel.pct}% · ${tel.speed} MB/S</span>
-                    <span class="text-[#888888]">${tel.sizeFormatted}</span>
-                  </div>
+            <!-- Bottom Live Telemetry / Action Bar -->
+            <div class="pt-4 hairline-t">
+              ${tel ? renderInlineTelemetryBar(tel) : `
+                <div class="flex items-center justify-between font-meta text-[9px] tracking-[2px] text-[#0a0a0a] uppercase">
+                  <span>[ SEND ARCHIVE / FILES ]</span>
+                  <span>→</span>
                 </div>
-              ` : `
-                <div class="flex items-center justify-between font-meta text-[9px] tracking-[2px] text-[#b2b2b2] uppercase">
-                  <span>CLICK OR DROP FILES</span>
-                  <span class="text-[#0a0a0a]">→</span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Render Responsive Architectural Index Grid Cards (Mobile & Desktop Grid View)
+      gridMount.innerHTML = peerList.map((peer, idx) => {
+        const indexNum = String(idx + 1).padStart(2, '0');
+        const transportBadge = (peer.webrtcConn && peer.webrtcConn.open)
+          ? 'WEBRTC P2P'
+          : 'TAB BRIDGE';
+        const tel = peer.telemetry;
+
+        return `
+          <div
+            id="card-${peer.nodeId}"
+            role="button"
+            tabindex="0"
+            data-cursor="action"
+            data-cursor-label="SEND"
+            onclick="selectPeerToSendFiles('${peer.nodeId}')"
+            ondragover="handlePeerDragOver(event, '${peer.nodeId}')"
+            ondragleave="handlePeerDragLeave(event, '${peer.nodeId}')"
+            ondrop="handlePeerDrop(event, '${peer.nodeId}')"
+            class="index-card p-5 sm:p-6 flex flex-col justify-between text-left"
+          >
+            <div class="flex items-center justify-between pb-3.5 hairline-b">
+              <div class="flex items-baseline space-x-2">
+                <span class="font-editorial text-3xl text-[#0a0a0a] font-light">${indexNum}</span>
+                <span class="font-meta text-[8.5px] tracking-[2px] text-[#888888] uppercase">/ ${escapeHtml(peer.osBadge)}</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="px-2 py-0.5 bg-[#f6f6f6] hairline-all font-meta text-[8px] tracking-[1.5px] text-[#0a0a0a] uppercase">
+                  ${transportBadge}
+                </span>
+                <div class="w-8 h-8 hairline-all flex items-center justify-center text-[#0a0a0a]">
+                  ${getDeviceCategorySvg(peer.deviceCategory)}
+                </div>
+              </div>
+            </div>
+
+            <div class="my-5">
+              <h2 class="font-editorial text-2xl sm:text-3xl text-[#0a0a0a] font-light tracking-wide truncate">
+                ${escapeHtml(peer.name)}
+              </h2>
+              <p class="font-meta text-[8.5px] tracking-[1.5px] text-[#888888] uppercase mt-1.5">
+                TAP CARD OR DROP FILES TO TRANSFER
+              </p>
+            </div>
+
+            <div class="pt-3.5 hairline-t">
+              ${tel ? renderInlineTelemetryBar(tel) : `
+                <div class="min-h-[38px] px-3 bg-[#f6f6f6] hover:bg-[#0a0a0a] hover:text-white transition-colors flex items-center justify-between font-meta text-[9px] tracking-[2px] uppercase">
+                  <span>SELECT FILES TO SEND</span>
+                  <span>→</span>
                 </div>
               `}
             </div>
@@ -1005,288 +1515,470 @@
       }).join('');
     }
 
-    function getDeviceSvgIcon(type) {
-      if (type === 'mobile') {
-        return `
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-            <rect x="6" y="2" width="12" height="20" rx="1" />
-            <line x1="10" y1="19" x2="14" y2="19" />
-          </svg>
-        `;
-      }
-      if (type === 'tablet') {
-        return `
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-            <rect x="4" y="2" width="16" height="20" rx="1" />
-            <circle cx="12" cy="19" r="0.8" fill="currentColor" />
-          </svg>
-        `;
-      }
+    function renderInlineTelemetryBar(tel) {
       return `
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-          <rect x="3" y="4" width="18" height="12" rx="1" />
-          <line x1="2" y1="19" x2="22" y2="19" />
-        </svg>
+        <div>
+          <div class="w-full h-[2px] bg-[#efefef] overflow-hidden mb-2">
+            <div class="h-full bg-[#0a0a0a] transition-all duration-75" style="width: ${tel.pct}%;"></div>
+          </div>
+          <div class="flex items-center justify-between font-meta text-[8.5px] tracking-[1.5px] text-[#0a0a0a] uppercase">
+            <span>${String(tel.pct).padStart(2, '0')}% · ${tel.speed} MB/S</span>
+            <span class="text-[#888888]">${tel.chunkText}</span>
+          </div>
+        </div>
       `;
     }
 
     /***************************************************************************
-     * 5. FILE SELECTION, DRAG-AND-DROP & 64KB CHUNK STREAMING WITH BACKPRESSURE
+     * 7. CRITICALLY-DAMPED ODE PHYSICS FOR DESKTOP KINETIC STRIP
      ***************************************************************************/
-    function initFileInputListener() {
-      const fileInput = document.getElementById('file-input');
-      fileInput.addEventListener('change', async (e) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length > 0 && state.targetPeerIdForFilePicker) {
-          await sendFilesToPeer(state.targetPeerIdForFilePicker, files);
+    function onSliceHover(nodeId) {
+      appState.hoveredPeerId = nodeId;
+    }
+
+    function onSliceLeave() {
+      appState.hoveredPeerId = null;
+    }
+
+    function stepKineticStripPhysics() {
+      const stripMount = document.getElementById('kinetic-strip-mount');
+      if (stripMount && !stripMount.classList.contains('hidden')) {
+        const slices = stripMount.querySelectorAll('.kinetic-slice');
+        if (slices.length > 1) {
+          const dt = 0.016;
+          const omega = 18; // Natural frequency for snappy critically-damped response
+
+          slices.forEach((sliceEl) => {
+            const nid = sliceEl.getAttribute('data-node-id');
+            const target = appState.hoveredPeerId
+              ? (nid === appState.hoveredPeerId ? 2.45 : 0.72)
+              : 1.0;
+
+            let state = appState.springWidths.get(nid);
+            if (!state) {
+              state = { pos: 1.0, vel: 0 };
+              appState.springWidths.set(nid, state);
+            }
+
+            // Critically damped second-order ODE: a = -2*omega*v - omega^2*(x - target)
+            const accel = -2 * omega * state.vel - (omega * omega) * (state.pos - target);
+            state.vel += accel * dt;
+            state.pos += state.vel * dt;
+
+            sliceEl.style.flex = `${Math.max(0.3, state.pos).toFixed(4)} 1 0%`;
+          });
         }
-        fileInput.value = '';
+      }
+      requestAnimationFrame(stepKineticStripPhysics);
+    }
+
+    window.addEventListener('resize', () => {
+      renderPeersWorkspace();
+    });
+
+    /***************************************************************************
+     * 8. HIGH-SPEED 64KB CHUNKED FILE TRANSFER WITH BACKPRESSURE
+     ***************************************************************************/
+    function initFilePickerEvents() {
+      const input = document.getElementById('global-file-input');
+      input.addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0 && appState.selectedPeerForPicker) {
+          await sendFileBatchToPeer(appState.selectedPeerForPicker, files);
+        }
+        input.value = '';
       });
     }
 
-    function triggerFileSelectForPeer(peerId) {
-      state.targetPeerIdForFilePicker = peerId;
-      document.getElementById('file-input').click();
+    function selectPeerToSendFiles(nodeId) {
+      appState.selectedPeerForPicker = nodeId;
+      document.getElementById('global-file-input').click();
     }
 
-    function onPeerDragOver(e, peerId) {
+    function handlePeerDragOver(e, nodeId) {
       e.preventDefault();
       e.stopPropagation();
-      const card = document.getElementById(`peer-card-${peerId}`);
+      const slice = document.getElementById(`slice-${nodeId}`);
+      const card = document.getElementById(`card-${nodeId}`);
+      if (slice) slice.classList.add('is-dragover');
       if (card) card.classList.add('is-dragover');
       const label = document.getElementById('xv-cursor-label');
       if (label) label.textContent = 'DROP';
     }
 
-    function onPeerDragLeave(e, peerId) {
+    function handlePeerDragLeave(e, nodeId) {
       e.preventDefault();
       e.stopPropagation();
-      const card = document.getElementById(`peer-card-${peerId}`);
+      const slice = document.getElementById(`slice-${nodeId}`);
+      const card = document.getElementById(`card-${nodeId}`);
+      if (slice) slice.classList.remove('is-dragover');
       if (card) card.classList.remove('is-dragover');
       const label = document.getElementById('xv-cursor-label');
       if (label) label.textContent = 'SEND';
     }
 
-    async function onPeerDrop(e, peerId) {
+    async function handlePeerDrop(e, nodeId) {
       e.preventDefault();
       e.stopPropagation();
-      const card = document.getElementById(`peer-card-${peerId}`);
-      if (card) card.classList.remove('is-dragover');
+      handlePeerDragLeave(e, nodeId);
 
       const files = Array.from(e.dataTransfer?.files || []);
       if (files.length > 0) {
-        await sendFilesToPeer(peerId, files);
+        await sendFileBatchToPeer(nodeId, files);
       }
     }
 
-    async function sendFilesToPeer(peerId, files) {
-      const peer = state.peers.get(peerId);
+    async function sendFileBatchToPeer(nodeId, files) {
+      const peer = appState.peers.get(nodeId);
       if (!peer) return;
 
       for (const file of files) {
-        await streamSingleFile(peer, file);
+        await streamSingleFileToPeer(peer, file);
       }
     }
 
-    async function streamSingleFile(peer, file) {
+    async function streamSingleFileToPeer(peer, file) {
       const buffer = await file.arrayBuffer();
-      const totalChunks = Math.max(1, Math.ceil(buffer.byteLength / CHUNK_SIZE));
-      const transferId = 'tx-' + Math.random().toString(36).substring(2, 10);
+      const totalChunks = Math.max(1, Math.ceil(buffer.byteLength / CHUNK_BYTE_SIZE));
+      const transferId = 'tx-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
       const startTime = performance.now();
-      const sizeFormatted = formatBytes(file.size);
 
-      const startHeader = {
+      // Add to Transfer Queue History
+      const queueRecord = {
+        id: transferId,
+        direction: 'OUTGOING',
+        fileName: file.name,
+        fileSize: file.size,
+        peerName: peer.name,
+        status: 'STREAMING',
+        progress: 0,
+        speed: '0.0',
+        chunkText: `CHUNK 0000 / ${String(totalChunks).padStart(4, '0')}`,
+        blobUrl: null,
+        isImage: false
+      };
+      appState.transferHistory.unshift(queueRecord);
+      updateTransferQueueUI();
+
+      const useWebRTC = Boolean(peer.webrtcConn && peer.webrtcConn.open);
+      const startPacket = {
         type: 'FILE_START',
-        to: peer.id,
-        from: state.myId,
-        roomCode: state.roomCode,
         transferId,
-        senderName: state.deviceName,
+        fromNodeId: appState.nodeId,
+        toNodeId: peer.nodeId,
+        senderName: appState.deviceName,
         fileName: file.name,
         fileSize: file.size,
         mimeType: file.type || 'application/octet-stream',
         totalChunks
       };
 
-      const useWebRTC = peer.conn && peer.conn.open;
-      if (useWebRTC) {
-        peer.conn.send(startHeader);
-      } else if (state.bc) {
-        state.bc.postMessage(startHeader);
-      }
+      sendPacketToPeer(peer, useWebRTC, startPacket);
 
-      const rawDc = useWebRTC ? peer.conn.dataChannel : null;
+      const rawDc = useWebRTC ? peer.webrtcConn.dataChannel : null;
       if (rawDc) {
-        rawDc.bufferedAmountLowThreshold = 512 * 1024; // 512KB threshold
+        rawDc.bufferedAmountLowThreshold = BUFFER_LOW_THRESHOLD;
       }
 
-      for (let i = 0; i < totalChunks; i++) {
-        const chunk = buffer.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+      for (let idx = 0; idx < totalChunks; idx++) {
+        const chunkBuffer = buffer.slice(idx * CHUNK_BYTE_SIZE, (idx + 1) * CHUNK_BYTE_SIZE);
 
-        // WebRTC DataChannel backpressure handling
-        if (rawDc && rawDc.bufferedAmount > 2 * 1024 * 1024) {
+        // WebRTC RTCDataChannel Backpressure Control
+        if (rawDc && rawDc.bufferedAmount > BUFFER_HIGH_WATERMARK) {
           await new Promise((resolve) => {
             const onLow = () => {
               rawDc.removeEventListener('bufferedamountlow', onLow);
               resolve();
             };
             rawDc.addEventListener('bufferedamountlow', onLow);
-            setTimeout(resolve, 60);
+            setTimeout(resolve, 50);
           });
         }
 
         const chunkPacket = {
           type: 'FILE_CHUNK',
-          to: peer.id,
-          from: state.myId,
-          roomCode: state.roomCode,
           transferId,
-          index: i,
-          chunk
+          fromNodeId: appState.nodeId,
+          toNodeId: peer.nodeId,
+          index: idx,
+          chunk: chunkBuffer
         };
 
-        if (useWebRTC) {
-          peer.conn.send(chunkPacket);
-        } else if (state.bc) {
-          state.bc.postMessage(chunkPacket);
-        }
+        sendPacketToPeer(peer, useWebRTC, chunkPacket);
 
-        // Update inline peer telemetry every few chunks so UI progress is silky smooth
-        if (i % 3 === 0 || i === totalChunks - 1) {
-          const sentBytes = Math.min(file.size, (i + 1) * CHUNK_SIZE);
-          const pct = Math.round(((i + 1) / totalChunks) * 100);
+        // Update Telemetry every few chunks or on final chunk
+        if (idx % 3 === 0 || idx === totalChunks - 1) {
+          const bytesSent = Math.min(file.size, (idx + 1) * CHUNK_BYTE_SIZE);
+          const pct = Math.round(((idx + 1) / totalChunks) * 100);
           const elapsedSec = Math.max(0.02, (performance.now() - startTime) / 1000);
-          const speed = ((sentBytes / (1024 * 1024)) / elapsedSec).toFixed(1);
+          const speed = ((bytesSent / (1024 * 1024)) / elapsedSec).toFixed(1);
+          const chunkText = `CHUNK ${String(idx + 1).padStart(4, '0')} / ${String(totalChunks).padStart(4, '0')}`;
 
-          peer.telemetry = { pct, speed, sizeFormatted };
-          renderPeersStage();
+          peer.telemetry = { pct, speed, chunkText };
+          queueRecord.progress = pct;
+          queueRecord.speed = speed;
+          queueRecord.chunkText = chunkText;
 
-          if (!useWebRTC && totalChunks > 4) {
-            await new Promise(r => setTimeout(r, 8));
+          setFooterTelemetry(`SENDING ${file.name} · ${pct}% · ${speed} MB/S · ${chunkText}`);
+          renderPeersWorkspace();
+          updateTransferQueueUI();
+
+          if (!useWebRTC && totalChunks > 6) {
+            await new Promise(r => setTimeout(r, 6));
           }
         }
       }
 
-      setTimeout(() => {
-        if (state.peers.has(peer.id)) {
-          state.peers.get(peer.id).telemetry = null;
-          renderPeersStage();
-        }
-      }, 900);
-    }
-
-    /***************************************************************************
-     * 6. INCOMING FILE STREAM & MINIMAL GALLERY OVERLAY
-     ***************************************************************************/
-    function onIncomingFileStart(meta) {
-      state.incomingTransfers.set(meta.transferId, {
-        meta,
-        chunks: [],
-        receivedBytes: 0,
-        startTime: performance.now()
+      sendPacketToPeer(peer, useWebRTC, {
+        type: 'FILE_END',
+        transferId,
+        fromNodeId: appState.nodeId,
+        toNodeId: peer.nodeId
       });
 
-      const modal = document.getElementById('incoming-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      queueRecord.status = 'COMPLETED';
+      updateTransferQueueUI();
+      setFooterTelemetry(`COMPLETED SENDING ${file.name} TO ${peer.name}`);
 
-      document.getElementById('incoming-status-tag').textContent = 'INCOMING P2P STREAM // 正在接收';
-      document.getElementById('incoming-sender-name').textContent = `From: ${meta.senderName}`;
-      document.getElementById('incoming-file-name').textContent = meta.fileName;
-      document.getElementById('incoming-file-size').textContent = formatBytes(meta.fileSize);
-      document.getElementById('incoming-progress-bar').style.width = '0%';
-      document.getElementById('incoming-telemetry-pct').textContent = '0%';
-      document.getElementById('incoming-telemetry-speed').textContent = 'STREAMING...';
-
-      const imgWrap = document.getElementById('incoming-image-wrap');
-      const imgPreview = document.getElementById('incoming-image-preview');
-      imgWrap.classList.add('hidden');
-      imgWrap.classList.remove('flex');
-      imgPreview.classList.remove('is-complete');
-      imgPreview.src = '';
-
-      const dlBtn = document.getElementById('incoming-download-btn');
-      dlBtn.classList.add('pointer-events-none', 'opacity-40');
+      setTimeout(() => {
+        if (appState.peers.has(peer.nodeId)) {
+          appState.peers.get(peer.nodeId).telemetry = null;
+          renderPeersWorkspace();
+        }
+      }, 1000);
     }
 
-    function onIncomingFileChunk(packet) {
-      const entry = state.incomingTransfers.get(packet.transferId);
-      if (!entry) return;
-
-      entry.chunks.push(packet.chunk);
-      const chunkLen = packet.chunk.byteLength || packet.chunk.size || 0;
-      entry.receivedBytes += chunkLen;
-
-      const pct = Math.min(100, Math.round((entry.chunks.length / entry.meta.totalChunks) * 100));
-      const elapsedSec = Math.max(0.02, (performance.now() - entry.startTime) / 1000);
-      const speed = ((entry.receivedBytes / (1024 * 1024)) / elapsedSec).toFixed(1);
-
-      document.getElementById('incoming-progress-bar').style.width = `${pct}%`;
-      document.getElementById('incoming-telemetry-pct').textContent = `${pct}%`;
-      document.getElementById('incoming-telemetry-speed').textContent = `${speed} MB/S · ${formatBytes(entry.receivedBytes)}`;
-
-      // Reassemble when complete
-      if (entry.chunks.length >= entry.meta.totalChunks) {
-        const blob = new Blob(entry.chunks, { type: entry.meta.mimeType });
-        const url = URL.createObjectURL(blob);
-
-        document.getElementById('incoming-status-tag').textContent = 'TRANSFER COMPLETE // 接收完成';
-        document.getElementById('incoming-telemetry-speed').textContent = `COMPLETE · ${speed} MB/S`;
-
-        const dlBtn = document.getElementById('incoming-download-btn');
-        dlBtn.href = url;
-        dlBtn.setAttribute('download', entry.meta.fileName);
-        dlBtn.classList.remove('pointer-events-none', 'opacity-40');
-
-        // Check if image for grayscale-to-color gallery reveal
-        const isImage = entry.meta.mimeType.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(entry.meta.fileName);
-        if (isImage) {
-          const imgWrap = document.getElementById('incoming-image-wrap');
-          const imgPreview = document.getElementById('incoming-image-preview');
-          imgPreview.src = url;
-          imgWrap.classList.remove('hidden');
-          imgWrap.classList.add('flex');
-          setTimeout(() => {
-            imgPreview.classList.add('is-complete');
-          }, 120);
-        }
-
-        if (state.autoDownload) {
-          dlBtn.click();
-        }
-
-        state.incomingTransfers.delete(packet.transferId);
+    function sendPacketToPeer(peer, useWebRTC, packet) {
+      if (useWebRTC && peer.webrtcConn && peer.webrtcConn.open) {
+        peer.webrtcConn.send(packet);
+      } else if (appState.bc) {
+        appState.bc.postMessage(packet);
       }
     }
 
-    function closeIncomingModal() {
-      const modal = document.getElementById('incoming-modal');
+    /***************************************************************************
+     * 9. INCOMING FILE STREAM ASSEMBLY & AUTO/ONE-CLICK SAVE
+     ***************************************************************************/
+    function handleIncomingFileStart(packet) {
+      const totalChunks = packet.totalChunks || 1;
+      const chunkText = `CHUNK 0000 / ${String(totalChunks).padStart(4, '0')}`;
+
+      const queueRecord = {
+        id: packet.transferId,
+        direction: 'INCOMING',
+        fileName: packet.fileName,
+        fileSize: packet.fileSize,
+        peerName: packet.senderName || 'Remote Node',
+        status: 'RECEIVING',
+        progress: 0,
+        speed: '0.0',
+        chunkText,
+        blobUrl: null,
+        isImage: false
+      };
+
+      appState.incomingStreams.set(packet.transferId, {
+        meta: packet,
+        chunks: new Array(totalChunks),
+        receivedCount: 0,
+        receivedBytes: 0,
+        startTime: performance.now(),
+        queueRecord
+      });
+
+      appState.transferHistory.unshift(queueRecord);
+      updateTransferQueueUI();
+      toggleTransferTray(true);
+    }
+
+    function handleIncomingFileChunk(packet) {
+      const stream = appState.incomingStreams.get(packet.transferId);
+      if (!stream) return;
+
+      stream.chunks[packet.index] = packet.chunk;
+      stream.receivedCount++;
+      const chunkLen = packet.chunk.byteLength || packet.chunk.size || 0;
+      stream.receivedBytes += chunkLen;
+
+      const total = stream.meta.totalChunks;
+      const pct = Math.min(100, Math.round((stream.receivedCount / total) * 100));
+      const elapsedSec = Math.max(0.02, (performance.now() - stream.startTime) / 1000);
+      const speed = ((stream.receivedBytes / (1024 * 1024)) / elapsedSec).toFixed(1);
+      const chunkText = `CHUNK ${String(stream.receivedCount).padStart(4, '0')} / ${String(total).padStart(4, '0')}`;
+
+      if (stream.receivedCount % 3 === 0 || stream.receivedCount === total) {
+        stream.queueRecord.progress = pct;
+        stream.queueRecord.speed = speed;
+        stream.queueRecord.chunkText = chunkText;
+        setFooterTelemetry(`RECEIVING ${stream.meta.fileName} · ${pct}% · ${speed} MB/S · ${chunkText}`);
+        updateTransferQueueUI();
+      }
+
+      if (stream.receivedCount >= total) {
+        finalizeIncomingTransfer(packet.transferId);
+      }
+    }
+
+    function handleIncomingFileEnd(packet) {
+      if (appState.incomingStreams.has(packet.transferId)) {
+        finalizeIncomingTransfer(packet.transferId);
+      }
+    }
+
+    function finalizeIncomingTransfer(transferId) {
+      const stream = appState.incomingStreams.get(transferId);
+      if (!stream) return;
+      appState.incomingStreams.delete(transferId);
+
+      const blob = new Blob(stream.chunks, { type: stream.meta.mimeType });
+      const blobUrl = URL.createObjectURL(blob);
+      const isImage = stream.meta.mimeType.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(stream.meta.fileName);
+
+      stream.queueRecord.status = 'READY';
+      stream.queueRecord.progress = 100;
+      stream.queueRecord.blobUrl = blobUrl;
+      stream.queueRecord.isImage = isImage;
+
+      setFooterTelemetry(`RECEIVED ${stream.meta.fileName} (${formatBytes(stream.meta.fileSize)})`);
+      updateTransferQueueUI();
+      toggleTransferTray(true);
+
+      // Auto-trigger download if enabled
+      if (appState.autoSaveIncoming) {
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = stream.meta.fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    }
+
+    function updateTransferQueueUI() {
+      const badge = document.getElementById('queue-badge-count');
+      const listEl = document.getElementById('transfer-list');
+      badge.textContent = String(appState.transferHistory.length);
+
+      if (appState.transferHistory.length === 0) {
+        listEl.innerHTML = `
+          <p class="font-meta text-[9.5px] tracking-[1.5px] text-[#b2b2b2] uppercase py-6 text-center">
+            NO TRANSFERS YET · SELECT A PEER TO SEND FILES
+          </p>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = appState.transferHistory.map((item) => {
+        return `
+          <div class="p-3.5 hairline-all bg-[#f6f6f6] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center space-x-3.5 min-w-0">
+              ${item.isImage && item.blobUrl ? `
+                <img src="${item.blobUrl}" alt="${escapeHtml(item.fileName)}" class="img-editorial is-color w-12 h-12 object-cover hairline-all bg-white shrink-0" />
+              ` : `
+                <div class="w-12 h-12 hairline-all bg-white flex items-center justify-center font-meta text-[8.5px] tracking-[1.5px] text-[#0a0a0a] shrink-0 uppercase">
+                  ${item.direction === 'INCOMING' ? 'IN' : 'OUT'}
+                </div>
+              `}
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center space-x-2">
+                  <span class="font-meta text-[8px] tracking-[1.8px] text-[#888888] uppercase">
+                    ${item.direction} · ${escapeHtml(item.peerName)}
+                  </span>
+                  <span class="font-meta text-[8px] tracking-[1.5px] text-[#0a0a0a] uppercase">
+                    ${formatBytes(item.fileSize)}
+                  </span>
+                </div>
+                <p class="font-editorial text-xl text-[#0a0a0a] truncate mt-0.5">
+                  ${escapeHtml(item.fileName)}
+                </p>
+                <div class="w-full max-w-md h-[1.5px] bg-[#e2e2e2] mt-1.5 overflow-hidden">
+                  <div class="h-full bg-[#0a0a0a] transition-all duration-75" style="width: ${item.progress}%;"></div>
+                </div>
+                <div class="flex items-center space-x-3 mt-1 font-meta text-[8px] tracking-[1.5px] text-[#888888] uppercase">
+                  <span>${item.progress}% · ${item.speed} MB/S</span>
+                  <span>${item.chunkText}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end shrink-0">
+              ${item.blobUrl ? `
+                <a
+                  href="${item.blobUrl}"
+                  download="${escapeHtml(item.fileName)}"
+                  data-cursor="action"
+                  data-cursor-label="SAVE"
+                  class="min-h-[38px] px-4 bg-[#0a0a0a] text-white font-meta text-[9px] tracking-[2px] uppercase flex items-center justify-center"
+                >
+                  [ SAVE FILE ]
+                </a>
+              ` : `
+                <span class="px-3 py-1.5 hairline-all bg-white font-meta text-[8.5px] tracking-[1.8px] text-[#0a0a0a] uppercase">
+                  ${item.status}
+                </span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleTransferTray(forceState) {
+      const tray = document.getElementById('transfer-tray');
+      const isHidden = tray.classList.contains('translate-y-full');
+      const shouldShow = forceState !== undefined ? forceState : isHidden;
+
+      if (shouldShow) {
+        tray.classList.remove('translate-y-full');
+      } else {
+        tray.classList.add('translate-y-full');
+      }
+    }
+
+    function toggleAutoSave(checked) {
+      appState.autoSaveIncoming = checked;
+    }
+
+    /***************************************************************************
+     * 10. MODALS, CHANNEL SWITCHING & UTILITY HELPERS
+     ***************************************************************************/
+    function openChannelModal() {
+      syncChannelUILabels();
+      const modal = document.getElementById('channel-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeChannelModal() {
+      const modal = document.getElementById('channel-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
     }
 
-    function toggleAutoDownload(checked) {
-      state.autoDownload = checked;
+    function setQuickChannel(code) {
+      document.getElementById('modal-channel-input').value = code;
+      applyChannelFromModal();
     }
 
-    /***************************************************************************
-     * 7. HEADER UI HELPERS (QR POPOVER, RENAME, DUPLICATE TAB TEST)
-     ***************************************************************************/
-    function toggleQrPopover(e) {
-      e.stopPropagation();
-      const pop = document.getElementById('qr-popover');
-      pop.classList.toggle('hidden');
-    }
+    function applyChannelFromModal() {
+      const input = document.getElementById('modal-channel-input');
+      const cleaned = input.value.trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase().padStart(4, '0').slice(0, 4);
 
-    function closeQrPopover() {
-      const pop = document.getElementById('qr-popover');
-      if (pop && !pop.classList.contains('hidden')) {
-        pop.classList.add('hidden');
+      if (cleaned !== appState.channel) {
+        appState.channel = cleaned;
+        appState.peers.clear();
+        appState.knownSlotIds.clear();
+        syncChannelUILabels();
+        renderPeersWorkspace();
+        startBroadcastChannelEngine();
+        startWebRTCSlotEngine();
+      } else {
+        syncChannelUILabels();
       }
     }
 
-    function copyChannelUrl() {
-      const shareUrl = `${window.location.origin}${window.location.pathname}?channel=${state.roomCode}`;
+    function copyDirectChannelLink() {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?room=${appState.channel}`;
       const ta = document.createElement('textarea');
       ta.value = shareUrl;
       ta.style.position = 'fixed';
@@ -1295,16 +1987,20 @@
       ta.select();
       try { document.execCommand('copy'); } catch (e) {}
       document.body.removeChild(ta);
-      closeQrPopover();
+
+      const btn = document.getElementById('copy-link-btn');
+      const orig = btn.textContent;
+      btn.textContent = '[ LINK COPIED ✓ ]';
+      setTimeout(() => { btn.textContent = orig; }, 1600);
     }
 
-    function editLocalDeviceName() {
+    function openRenameModal() {
       const modal = document.getElementById('rename-modal');
-      const input = document.getElementById('rename-input');
-      input.value = state.deviceName;
+      const input = document.getElementById('rename-modal-input');
+      input.value = appState.deviceName;
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-      setTimeout(() => input.select(), 50);
+      setTimeout(() => input.select(), 40);
     }
 
     function closeRenameModal() {
@@ -1313,26 +2009,29 @@
       modal.classList.remove('flex');
     }
 
-    function saveDeviceName() {
-      const input = document.getElementById('rename-input');
-      const cleaned = input.value.trim();
-      if (cleaned) {
-        state.deviceName = cleaned;
-        sessionStorage.setItem('xv_device_name', cleaned);
-        document.getElementById('local-device-name').textContent = cleaned;
+    function saveLocalDeviceName() {
+      const input = document.getElementById('rename-modal-input');
+      const val = input.value.trim();
+      if (val) {
+        appState.deviceName = val;
+        localStorage.setItem('xv_device_alias', val);
+        document.getElementById('my-device-name').textContent = val;
 
-        // Broadcast updated name to all peers
-        if (state.bc) {
-          state.bc.postMessage({
-            type: 'ANNOUNCE',
-            from: state.myId,
-            roomCode: state.roomCode,
-            peer: getMyPublicDescriptor()
+        // Broadcast updated name to all connected peers
+        if (appState.bc) {
+          appState.bc.postMessage({
+            type: 'BC_HELLO',
+            fromNodeId: appState.nodeId,
+            descriptor: getMyDescriptor()
           });
         }
-        state.webrtcConns.forEach((conn) => {
+        appState.slotConns.forEach((conn) => {
           if (conn.open) {
-            conn.send({ type: 'HELLO', peer: getMyPublicDescriptor() });
+            conn.send({
+              type: 'W_ROSTER_SYNC',
+              descriptor: getMyDescriptor(),
+              roster: getKnownPeerJsRoster()
+            });
           }
         });
       }
@@ -1340,16 +2039,46 @@
     }
 
     function openDuplicateTabForTest() {
-      const url = `${window.location.origin}${window.location.pathname}?channel=${state.roomCode}`;
-      window.open(url, '_blank');
+      const shareUrl = `${window.location.origin}${window.location.pathname}?room=${appState.channel}`;
+      window.open(shareUrl, '_blank');
+    }
+
+    function setFooterTelemetry(text) {
+      const el = document.getElementById('footer-live-telemetry');
+      if (el) el.textContent = text;
+    }
+
+    function getDeviceCategorySvg(category) {
+      if (category === 'mobile') {
+        return `
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+            <rect x="6" y="2" width="12" height="20" rx="1" />
+            <line x1="10" y1="19" x2="14" y2="19" />
+          </svg>
+        `;
+      }
+      if (category === 'tablet') {
+        return `
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+            <rect x="4" y="2" width="16" height="20" rx="1" />
+            <circle cx="12" cy="19" r="0.9" fill="currentColor" />
+          </svg>
+        `;
+      }
+      return `
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+          <rect x="3" y="4" width="18" height="12" rx="1" />
+          <line x1="2" y1="19" x2="22" y2="19" />
+        </svg>
+      `;
     }
 
     function formatBytes(bytes) {
       if (!bytes || bytes === 0) return '0 B';
       const k = 1024;
-      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const units = ['B', 'KB', 'MB', 'GB'];
       const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + units[i];
     }
 
     function escapeHtml(str) {
