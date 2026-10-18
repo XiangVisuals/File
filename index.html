@@ -1,358 +1,1364 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ArrowFlow — 图片箭头风格转换器</title>
-<style>
-:root{--bg:#080808;--panel:#111;--line:#242424;--text:#f5f5f5;--muted:#8d8d8d}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif}
-.app{min-height:100vh;display:grid;grid-template-columns:340px 1fr}
-.sidebar{padding:28px 24px;border-right:1px solid var(--line);background:#0c0c0c;overflow:auto}
-.logo{font-size:21px;font-weight:700;letter-spacing:-.04em}.sub{color:var(--muted);font-size:12px;margin-top:5px}
-.section{margin-top:28px}.section h3{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#777;margin:0 0 13px}
-.drop{border:1px dashed #3b3b3b;border-radius:16px;padding:22px 15px;text-align:center;cursor:pointer;transition:.2s}
-.drop:hover,.drop.drag{border-color:#aaa;background:#151515}.drop strong{display:block;font-size:14px}.drop span{display:block;color:#777;font-size:11px;margin-top:7px}
-input[type=file]{display:none}.row{display:flex;justify-content:space-between;align-items:center;margin:15px 0 7px;font-size:12px}.value{color:#aaa;font-variant-numeric:tabular-nums}
-input[type=range]{width:100%;accent-color:#fff}
-select,button{width:100%;background:#171717;color:#eee;border:1px solid #292929;border-radius:10px;padding:10px 11px;font-size:12px}
-button{cursor:pointer}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.primary{background:#f5f5f5;color:#080808;border-color:#f5f5f5;font-weight:600}
-.hint{font-size:10px;line-height:1.6;color:#666;margin-top:18px}
-.stage{position:relative;display:flex;align-items:center;justify-content:center;padding:28px;min-width:0}
-.canvas-wrap{width:min(100%,1100px);height:min(calc(100vh - 56px),900px);display:flex;align-items:center;justify-content:center;background:#050505;border-radius:18px;overflow:hidden}
-canvas{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
-.empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#444;font-size:13px}
-.badge{position:absolute;right:44px;top:44px;color:#666;font-size:10px;letter-spacing:.08em}
-@media(max-width:800px){.app{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid var(--line)}.stage{min-height:70vh}.canvas-wrap{height:70vh}.badge{display:none}}
-</style>
-</head>
-<body>
-<div class="app">
-<aside class="sidebar">
-  <div class="logo">ArrowFlow</div>
-  <div class="sub">把照片转换成黑底白箭头艺术</div>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>XIANGVISUALS // FILE — Pure LAN P2P</title>
 
-  <div class="section">
-    <div class="drop" id="drop" role="button" tabindex="0">
-<strong>选择图片</strong><span>点击选择 JPG / PNG / WebP / HEIC / HEIF，也可拖入图片</span>
-<input id="file" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif,image/*">
-</div>
-  </div>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  <div class="section">
-    <h3>Field</h3>
-    <select id="mode">
-      <option value="gradient">图像梯度 · Image Gradient</option>
-      <option value="radial">中心汇聚 · Radial</option>
-      <option value="vortex">旋涡 · Vortex</option>
-      <option value="up">垂直流 · Vertical</option>
-    </select>
+  <!-- Google Fonts: Cinzel, Cormorant Garamond, Noto Serif SC, Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&family=Noto+Serif+SC:wght@200;300;400;500&display=swap" rel="stylesheet">
 
-    <div class="row"><span>箭头密度</span><span class="value" id="densityV">30</span></div>
-    <input id="density" type="range" min="12" max="60" value="30">
+  <!-- PeerJS for Real Cross-Device WebRTC DataChannel Mesh -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
-    <div class="row"><span>箭头长度</span><span class="value" id="sizeV">13</span></div>
-    <input id="size" type="range" min="4" max="28" value="13">
+  <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f6f6f6;
+      --text-primary: #0a0a0a;
+      --text-secondary: #888888;
+      --text-muted: #b2b2b2;
+      --border-hairline: #e2e2e2;
+      --border-subtle: #efefef;
 
-    <div class="row"><span>方向强度</span><span class="value" id="strengthV">1.0</span></div>
-    <input id="strength" type="range" min="0.2" max="2.5" step=".1" value="1">
+      --font-brand: 'Cinzel', 'Noto Serif SC', serif;
+      --font-editorial: 'Cormorant Garamond', 'Noto Serif SC', serif;
+      --font-meta: 'Montserrat', -apple-system, BlinkMacSystemFont, monospace;
 
-    <div class="row"><span>明暗对比</span><span class="value" id="contrastV">1.4</span></div>
-    <input id="contrast" type="range" min=".2" max="3" step=".1" value="1.4">
-
-    <div class="row"><span>最小可见度</span><span class="value" id="thresholdV">0.08</span></div>
-    <input id="threshold" type="range" min="0" max=".6" step=".01" value=".08">
-
-    <div class="row"><span>采样平滑</span><span class="value" id="smoothV">3</span></div>
-    <input id="smooth" type="range" min="0" max="8" step="1" value="3">
-
-    <div class="row"><span>主体权重</span><span class="value" id="focusV">1.3</span></div>
-    <input id="focus" type="range" min="0.3" max="2.5" step=".1" value="1.3">
-  </div>
-
-  <div class="section">
-    <h3>Style</h3>
-    <div class="row"><span>箭头粗细</span><span class="value" id="weightV">2.4</span></div>
-    <input id="weight" type="range" min=".7" max="5" step=".1" value="2.4">
-    <div class="row"><span>黑色背景</span><span class="value" id="bgV">100%</span></div>
-    <input id="bg" type="range" min="0" max="100" value="100">
-  </div>
-
-  <div class="section buttons">
-    <button type="button" id="random">随机参数</button>
-    <button type="button" id="reset">重置</button>
-    <button type="button" class="primary" id="download">导出 PNG</button>
-    <button type="button" id="fullscreen">全屏预览</button>
-  </div>
-  <div class="hint">所有处理均在浏览器本地 Canvas 完成，图片不会上传服务器。新版加入了平滑采样、主体权重与自适应箭头尺寸，能明显减少“网格感”和方向噪声。建议使用人物、建筑、城市或具有明显明暗结构的照片。</div>
-</aside>
-
-<main class="stage">
-  <div class="badge">LOCAL · GENERATIVE STYLE</div>
-  <div class="canvas-wrap" id="wrap">
-    <canvas id="canvas" width="900" height="1200"></canvas>
-    <div class="empty" id="empty">上传一张图片开始</div>
-  </div>
-</main>
-</div>
-
-<script>
-const $=id=>document.getElementById(id);
-const c=$('canvas'),ctx=c.getContext('2d');
-const src=document.createElement('canvas');
-const sctx=src.getContext('2d',{willReadFrequently:true});
-let img=null,pixels=null,iw=0,ih=0;
-
-const controls=['density','size','strength','contrast','threshold','weight','bg','smooth'];
-controls.forEach(id=>{
-  const el=$(id);
-  if(el) el.addEventListener('input',()=>{updateLabels();render();});
-});
-$('mode')?.addEventListener('change',render);
-
-function updateLabels(){
-  if($('densityV')) $('densityV').textContent=$('density').value;
-  if($('sizeV')) $('sizeV').textContent=$('size').value;
-  if($('strengthV')) $('strengthV').textContent=(+$('strength').value).toFixed(1);
-  if($('contrastV')) $('contrastV').textContent=(+$('contrast').value).toFixed(1);
-  if($('thresholdV')) $('thresholdV').textContent=(+$('threshold').value).toFixed(2);
-  if($('weightV')) $('weightV').textContent=(+$('weight').value).toFixed(1);
-  if($('bgV')) $('bgV').textContent=$('bg').value+'%';
-  if($('smoothV')) $('smoothV').textContent=$('smooth').value;
-}
-updateLabels();
-
-const drop=$('drop'),fileInput=$('file');
-
-function isHeifFile(file){
-  const type=(file?.type||'').toLowerCase();
-  const name=(file?.name||'').toLowerCase();
-  return type==='image/heic'||type==='image/heif'||name.endsWith('.heic')||name.endsWith('.heif');
-}
-
-function openPicker(){
-  if(!fileInput)return;
-  fileInput.value='';
-  fileInput.click();
-}
-drop?.addEventListener('click',openPicker);
-drop?.addEventListener('keydown',e=>{
-  if(e.key==='Enter'||e.key===' '){e.preventDefault();openPicker();}
-});
-fileInput?.addEventListener('change',e=>{
-  const f=e.target.files?.[0];
-  if(f)loadFile(f);
-});
-['dragenter','dragover'].forEach(t=>drop?.addEventListener(t,e=>{
-  e.preventDefault();e.stopPropagation();drop.classList.add('drag');
-}));
-['dragleave','drop'].forEach(t=>drop?.addEventListener(t,e=>{
-  e.preventDefault();e.stopPropagation();drop.classList.remove('drag');
-}));
-drop?.addEventListener('drop',e=>{
-  const f=e.dataTransfer?.files?.[0];
-  if(f)loadFile(f);
-});
-
-async function decodeImageFile(file){
-  // First try browser-native ImageBitmap. This works for HEIF where the OS/browser exposes decoding.
-  if(window.createImageBitmap){
-    try{
-      const bitmap=await createImageBitmap(file);
-      return bitmap;
-    }catch(e){}
-  }
-
-  const url=URL.createObjectURL(file);
-  try{
-    const im=await new Promise((resolve,reject)=>{
-      const image=new Image();
-      image.decoding='async';
-      image.onload=()=>resolve(image);
-      image.onerror=()=>reject(new Error('IMAGE_DECODE_FAILED'));
-      image.src=url;
-    });
-    return {image:im,url};
-  }catch(e){
-    URL.revokeObjectURL(url);
-    throw new Error(isHeifFile(file)?'HEIF_UNSUPPORTED':'IMAGE_DECODE_FAILED');
-  }
-}
-
-async function loadFile(file){
-  if(!file || (file.type && !file.type.startsWith('image/') && !isHeifFile(file))){
-    alert('请选择 JPG、PNG、WebP、HEIC 或 HEIF 图片。');
-    return;
-  }
-
-  try{
-    const decoded=await decodeImageFile(file);
-    const drawable=decoded.image||decoded;
-    iw=drawable.width||drawable.naturalWidth;
-    ih=drawable.height||drawable.naturalHeight;
-
-    if(!iw||!ih) throw new Error('INVALID_IMAGE_DIMENSIONS');
-
-    const maxSide=1600;
-    const scale=Math.min(1,maxSide/Math.max(iw,ih));
-    src.width=Math.max(1,Math.round(iw*scale));
-    src.height=Math.max(1,Math.round(ih*scale));
-
-    sctx.setTransform(1,0,0,1,0,0);
-    sctx.clearRect(0,0,src.width,src.height);
-    sctx.drawImage(drawable,0,0,src.width,src.height);
-
-    pixels=sctx.getImageData(0,0,src.width,src.height);
-    img=drawable;
-
-    c.width=src.width;
-    c.height=src.height;
-    $('empty').style.display='none';
-
-    if(decoded.url) URL.revokeObjectURL(decoded.url);
-    if(decoded.close) decoded.close();
-
-    render();
-  }catch(err){
-    console.error('ArrowFlow image processing error:',err);
-    if(err.message==='HEIF_UNSUPPORTED'){
-      alert('当前 Safari 无法直接解码这张 HEIC/HEIF 图片。请更新 iOS/Safari，或在照片中选择“兼容性最好”的 JPG 版本。');
-    }else{
-      alert('图片读取或生成失败，请换一张图片重试。');
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-curtain: cubic-bezier(0.76, 0, 0.24, 1);
     }
-  }
-}
 
-function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      user-select: none;
+    }
 
-function sampleLumRaw(x,y){
-  if(!pixels) return 0;
-  x=Math.round(clamp(x,0,src.width-1));
-  y=Math.round(clamp(y,0,src.height-1));
-  const i=(y*src.width+x)*4,d=pixels.data;
-  return (0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2])/255;
-}
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-meta);
+      overflow: hidden;
+    }
 
-function smoothSample(x,y,r){
-  r=Math.max(0,Math.min(6,Math.round(Number(r)||0)));
-  if(!r)return sampleLumRaw(x,y);
-  let sum=0,count=0;
-  for(let yy=-r;yy<=r;yy++){
-    for(let xx=-r;xx<=r;xx++){
-      if(xx*xx+yy*yy<=r*r){
-        sum+=sampleLumRaw(x+xx,y+yy);count++;
+    @media (pointer: fine) {
+      body, a, button, input, label, [role="button"] {
+        cursor: none !important;
       }
     }
-  }
-  return count?sum/count:sampleLumRaw(x,y);
-}
 
-function lum(x,y){
-  return smoothSample(x,y,$('smooth')?$('smooth').value:0);
-}
-
-function gradient(x,y){
-  const e=2;
-  const gx=lum(x+e,y)-lum(x-e,y);
-  const gy=lum(x,y+e)-lum(x,y-e);
-  return [gx,gy];
-}
-
-function field(x,y){
-  const nx=(x/src.width-.5)*2,ny=(y/src.height-.5)*2;
-  const mode=$('mode').value,st=+$('strength').value;
-  if(mode==='up')return [0,-1];
-  if(mode==='radial'){
-    const dx=-nx,dy=-ny,m=Math.hypot(dx,dy)||1;
-    return [dx/m*st,dy/m*st];
-  }
-  if(mode==='vortex'){
-    const dx=-ny,dy=nx,m=Math.hypot(dx,dy)||1;
-    return [dx/m*st,dy/m*st];
-  }
-  let [gx,gy]=gradient(x,y);
-  let vx=-gy,vy=gx,m=Math.hypot(vx,vy);
-  if(m<0.00001)return [1,0];
-  return [vx/m*st,vy/m*st];
-}
-
-function render(){
-  if(!pixels)return;
-  const w=src.width,h=src.height;
-  const bg=+$('bg').value/100;
-  ctx.clearRect(0,0,w,h);
-  ctx.fillStyle=`rgb(${Math.round(5*bg)},${Math.round(5*bg)},${Math.round(5*bg)})`;
-  ctx.fillRect(0,0,w,h);
-
-  const n=+$('density').value;
-  const cell=Math.max(8,Math.min(w,h)/n);
-  const base=+$('size').value;
-  const contrast=+$('contrast').value;
-  const threshold=+$('threshold').value;
-
-  for(let y=cell*.5;y<h;y+=cell){
-    for(let x=cell*.5;x<w;x+=cell){
-      const l=lum(x,y);
-      const v=Math.pow(Math.max(0,1-l),contrast);
-      if(v<threshold)continue;
-      const [vx,vy]=field(x,y);
-      const m=Math.hypot(vx,vy)||1;
-      const len=base*(.35+v*1.35);
-      const angle=Math.atan2(vy/m,vx/m);
-      arrow(x,y,len,angle,.22+v*.78);
+    .font-brand {
+      font-family: var(--font-brand);
+      letter-spacing: 3px;
     }
-  }
-}
+    .font-editorial {
+      font-family: var(--font-editorial);
+      font-weight: 300;
+    }
+    .font-meta {
+      font-family: var(--font-meta);
+      font-variant-numeric: tabular-nums;
+    }
 
-function arrow(x,y,len,ang,alpha){
-  ctx.save();ctx.translate(x,y);ctx.rotate(ang);
-  ctx.globalAlpha=clamp(alpha,0,1);ctx.strokeStyle='#fff';
-  ctx.lineWidth=+$('weight').value;ctx.lineCap='round';ctx.lineJoin='round';
-  ctx.beginPath();ctx.moveTo(-len*.5,0);ctx.lineTo(len*.5,0);ctx.stroke();
-  const h=Math.max(2,len*.30);
-  ctx.beginPath();ctx.moveTo(len*.5-h,-h*.72);ctx.lineTo(len*.5,0);ctx.lineTo(len*.5-h,h*.72);ctx.stroke();
-  ctx.restore();
-}
-$('random').onclick=()=>{
-  $('density').value=18+Math.floor(Math.random()*38);
-  $('size').value=7+Math.floor(Math.random()*18);
-  $('strength').value=(.5+Math.random()*1.7).toFixed(1);
-  $('contrast').value=(.7+Math.random()*1.8).toFixed(1);
-  $('threshold').value=(Math.random()*.25).toFixed(2);
-  $('smooth').value=Math.floor(Math.random()*6);
-  $('weight').value=(1.2+Math.random()*2.8).toFixed(1);
-  $('mode').value=['gradient','radial','vortex','up'][Math.floor(Math.random()*4)];
-  updateLabels();render();
-};
-$('reset').onclick=()=>{
-  $('density').value=30;$('size').value=13;$('strength').value=1;$('contrast').value=1.4;
-  $('threshold').value=.08;$('smooth').value=3;$('weight').value=2.4;$('bg').value=100;$('mode').value='gradient';
-  updateLabels();render();
-};
+    .hairline-t { border-top: 1px solid var(--border-hairline); }
+    .hairline-b { border-bottom: 1px solid var(--border-hairline); }
+    .hairline-l { border-left: 1px solid var(--border-hairline); }
+    .hairline-r { border-right: 1px solid var(--border-hairline); }
+    .hairline-all { border: 1px solid var(--border-hairline); }
 
-$('download').onclick=async()=>{
-  if(!pixels){alert('请先上传图片');return;}
-  try{
-    render();
-    await new Promise(requestAnimationFrame);
-    const blob=await new Promise((resolve,reject)=>{
-      c.toBlob(b=>b?resolve(b):reject(new Error('PNG_ENCODING_FAILED')),'image/png');
+    /* Fast 0.7s 1px Geometric Viewfinder Intro */
+    #xv-intro {
+      position: fixed;
+      inset: 0;
+      background: #ffffff;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.4s var(--ease-curtain), visibility 0.4s var(--ease-curtain);
+    }
+    #xv-intro.is-done {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .intro-frame {
+      width: 64px;
+      height: 64px;
+      border: 1px solid #0a0a0a;
+      transition: all 0.55s var(--ease-curtain);
+    }
+    .intro-frame.expand {
+      width: calc(100vw - 32px);
+      height: calc(100vh - 32px);
+      border-color: var(--border-hairline);
+    }
+
+    /* Context-Aware Smooth Custom Cursor */
+    #xv-cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 8px;
+      height: 8px;
+      background: #0a0a0a;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10000;
+      transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
+      transition: width 0.28s var(--ease-out),
+                  height 0.28s var(--ease-out),
+                  background-color 0.24s ease,
+                  border-color 0.24s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #xv-cursor.mode-ring {
+      width: 36px;
+      height: 36px;
+      background: rgba(10, 10, 10, 0.02);
+      border: 1px solid rgba(10, 10, 10, 0.45);
+    }
+    #xv-cursor.mode-peer {
+      width: 56px;
+      height: 56px;
+      background: rgba(255, 255, 255, 0.84);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid #0a0a0a;
+    }
+    #xv-cursor-label {
+      font-family: var(--font-meta);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      color: #0a0a0a;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.2s ease, transform 0.2s var(--ease-out);
+      text-transform: uppercase;
+    }
+    #xv-cursor.mode-peer #xv-cursor-label {
+      opacity: 1;
+      transform: scale(1);
+    }
+    @media (pointer: coarse) {
+      #xv-cursor { display: none !important; }
+    }
+
+    /* Subtle Optical Viewfinder Sweep */
+    .radar-sweep {
+      transform-origin: 500px 500px;
+      animation: sweepRotate 18s linear infinite;
+    }
+    @keyframes sweepRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Peer Card Styling */
+    .peer-card {
+      background: #ffffff;
+      border: 1px solid var(--border-hairline);
+      transition: transform 0.45s var(--ease-out),
+                  background-color 0.3s ease,
+                  border-color 0.3s ease,
+                  box-shadow 0.45s var(--ease-out);
+    }
+    .peer-card:hover {
+      background: var(--bg-secondary);
+      border-color: #0a0a0a;
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px -12px rgba(0, 0, 0, 0.07);
+    }
+    .peer-card.is-dragover {
+      background: var(--bg-secondary);
+      border-color: #0a0a0a;
+      outline: 1px dashed #0a0a0a;
+      outline-offset: -6px;
+      transform: scale(1.02);
+    }
+
+    /* Grayscale to Color Image Transition */
+    .preview-monochrome {
+      filter: grayscale(100%) contrast(1.08);
+      transition: filter 0.8s var(--ease-out);
+    }
+    .preview-monochrome.is-complete {
+      filter: grayscale(0%) contrast(1);
+    }
+  </style>
+</head>
+<body class="flex flex-col h-screen w-screen justify-between select-none">
+
+  <!-- 1. 0.7S 1PX GEOMETRIC VIEWFINDER INTRO -->
+  <div id="xv-intro" aria-hidden="true">
+    <div id="intro-frame" class="intro-frame"></div>
+  </div>
+
+  <!-- 2. CONTEXT-AWARE CUSTOM CURSOR -->
+  <div id="xv-cursor">
+    <span id="xv-cursor-label">SEND</span>
+  </div>
+
+  <!-- Hidden File Input for Clicking a Peer Card -->
+  <input type="file" id="file-input" class="hidden" multiple />
+
+  <!-- 3. TOP HEADER BAR (1PX BOTTOM HAIRLINE) -->
+  <header class="w-full h-16 hairline-b bg-white/95 backdrop-blur-sm px-4 sm:px-8 lg:px-12 flex items-center justify-between z-30 shrink-0">
+    <!-- Left: Brand Mark + / FILE Indicator -->
+    <div class="flex items-center space-x-3">
+      <a href="https://xiangvisuals.com/" target="_blank" rel="noopener" data-cursor="ring" class="font-brand text-xs sm:text-sm font-medium tracking-[3px] text-[#0a0a0a]">
+        XIANGVISUALS
+      </a>
+      <span class="text-[#b2b2b2] font-light text-xs">/</span>
+      <span class="font-meta text-[10px] tracking-[2.5px] text-[#0a0a0a] uppercase">FILE</span>
+    </div>
+
+    <!-- Center: LAN Channel Pill + Inline Edit + Minimal QR Popover Button -->
+    <div class="relative flex items-center">
+      <div class="flex items-center hairline-all bg-[#ffffff] hover:bg-[#f6f6f6] transition-colors h-8 px-3 space-x-2">
+        <span class="font-meta text-[9px] tracking-[2px] text-[#888888] uppercase hidden sm:inline">LAN CHANNEL:</span>
+        <span class="font-meta text-[9px] tracking-[1px] text-[#888888] sm:hidden">CH:</span>
+        <input
+          id="room-code-input"
+          type="text"
+          maxlength="4"
+          value="2026"
+          aria-label="LAN Channel 4-Digit Code"
+          data-cursor="ring"
+          class="w-11 bg-transparent font-meta text-[10px] font-medium tracking-[2px] text-[#0a0a0a] text-center uppercase focus:outline-none focus:bg-white select-text"
+          title="Click to edit 4-digit LAN Channel Code"
+        />
+        <span class="h-3 w-[1px] bg-[#e2e2e2]"></span>
+        <button
+          id="qr-toggle-btn"
+          type="button"
+          data-cursor="ring"
+          onclick="toggleQrPopover(event)"
+          class="font-meta text-[9px] tracking-[1.8px] text-[#888888] hover:text-[#0a0a0a] uppercase flex items-center space-x-1"
+          title="Show QR Code for Mobile LAN Pairing"
+        >
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <path d="M14 14h3v3h-3zM18 18h3v3h-3zM18 14h3M14 18h3" />
+          </svg>
+          <span class="hidden md:inline">QR</span>
+        </button>
+      </div>
+
+      <!-- Minimal QR Popover -->
+      <div
+        id="qr-popover"
+        onclick="event.stopPropagation()"
+        class="hidden absolute top-11 left-1/2 -translate-x-1/2 w-60 bg-white hairline-all p-5 shadow-xl z-50 text-center"
+      >
+        <p class="font-meta text-[9px] tracking-[2px] text-[#888888] uppercase mb-3">
+          SCAN TO JOIN CHANNEL #<span id="qr-room-label">2026</span>
+        </p>
+        <div class="w-40 h-40 mx-auto p-2 hairline-all bg-white flex items-center justify-center">
+          <img
+            id="qr-image"
+            src=""
+            alt="Channel QR Code"
+            class="w-full h-full object-contain"
+          />
+        </div>
+        <p class="font-meta text-[8.5px] tracking-[1.5px] text-[#b2b2b2] uppercase mt-3 leading-relaxed">
+          SAME WI-FI OR CHANNEL CODE CONNECTS DIRECTLY
+        </p>
+        <button
+          type="button"
+          data-cursor="ring"
+          onclick="copyChannelUrl()"
+          class="mt-3 w-full py-1.5 hairline-all bg-[#f6f6f6] hover:bg-[#0a0a0a] hover:text-white transition-colors font-meta text-[8.5px] tracking-[2px] uppercase"
+        >
+          COPY LINK
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: Local Device Identity (Editable) & Connection State Dot -->
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-1.5">
+        <span class="font-meta text-[9px] tracking-[2px] text-[#888888] uppercase hidden md:inline">YOU:</span>
+        <button
+          type="button"
+          data-cursor="ring"
+          onclick="editLocalDeviceName()"
+          class="font-editorial text-sm sm:text-base text-[#0a0a0a] hover:underline tracking-wide flex items-center space-x-1"
+          title="Click to rename your device"
+        >
+          <span id="local-device-name">...</span>
+        </button>
+      </div>
+
+      <div class="flex items-center space-x-1.5 pl-2 sm:pl-3 hairline-l h-4">
+        <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+        <span id="status-text" class="font-meta text-[9px] tracking-[2px] text-[#888888] uppercase">ONLINE</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 4. CENTRAL MINIMALIST RADAR / VIEWPORT STAGE -->
+  <main
+    id="radar-stage"
+    class="relative flex-1 w-full bg-white overflow-hidden flex items-center justify-center"
+    onclick="closeQrPopover()"
+  >
+    <!-- Optical Viewfinder Background SVG (1px Concentric Hairline Rings & Crosshair) -->
+    <svg
+      class="absolute inset-0 w-full h-full pointer-events-none"
+      viewBox="0 0 1000 1000"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <!-- Subtle Crosshairs -->
+      <line x1="500" y1="0" x2="500" y2="1000" stroke="#efefef" stroke-width="1" />
+      <line x1="0" y1="500" x2="1000" y2="500" stroke="#efefef" stroke-width="1" />
+
+      <!-- Concentric 1px Optical Rings -->
+      <circle cx="500" cy="500" r="140" fill="none" stroke="#efefef" stroke-width="1" />
+      <circle cx="500" cy="500" r="280" fill="none" stroke="#e2e2e2" stroke-width="1" stroke-dasharray="3 6" />
+      <circle cx="500" cy="500" r="420" fill="none" stroke="#efefef" stroke-width="1" />
+
+      <!-- Subtle Rotating Viewfinder Sweep Line -->
+      <g class="radar-sweep">
+        <line x1="500" y1="500" x2="500" y2="80" stroke="#e2e2e2" stroke-width="1" />
+      </g>
+    </svg>
+
+    <!-- Corner 1px Architectural Crop Marks -->
+    <div class="absolute top-5 left-5 w-4 h-4 border-t border-l border-[#e2e2e2] pointer-events-none"></div>
+    <div class="absolute top-5 right-5 w-4 h-4 border-t border-r border-[#e2e2e2] pointer-events-none"></div>
+    <div class="absolute bottom-5 left-5 w-4 h-4 border-b border-l border-[#e2e2e2] pointer-events-none"></div>
+    <div class="absolute bottom-5 right-5 w-4 h-4 border-b border-r border-[#e2e2e2] pointer-events-none"></div>
+
+    <!-- EMPTY STATE (Shown when 0 peers are in the LAN channel) -->
+    <div id="empty-state" class="relative z-10 max-w-md mx-auto px-6 text-center flex flex-col items-center">
+      <span class="font-meta text-[9px] tracking-[3px] text-[#b2b2b2] uppercase mb-2">
+        OPTICAL LAN FIELD // CHANNEL #<span id="empty-channel-code">2026</span>
+      </span>
+      <h1 class="font-editorial text-3xl sm:text-4xl text-[#0a0a0a] tracking-wide font-light">
+        00 / 局域网就绪 <span class="italic">Waiting for Peers</span>
+      </h1>
+      <p class="font-meta text-[10.5px] leading-relaxed text-[#888888] tracking-[0.8px] mt-3 max-w-sm">
+        Open this page on another device in the same network or tab to transfer files directly.
+      </p>
+      <button
+        type="button"
+        data-cursor="ring"
+        onclick="openDuplicateTabForTest()"
+        class="mt-7 px-5 py-2.5 hairline-all bg-white hover:bg-[#0a0a0a] hover:text-white transition-colors font-meta text-[9.5px] tracking-[2.2px] uppercase"
+      >
+        [ + OPEN SECOND TAB TO TEST ]
+      </button>
+    </div>
+
+    <!-- DISCOVERED PEER NODES CONTAINER (Shown when 1+ peers are discovered) -->
+    <div
+      id="peers-stage"
+      class="hidden relative z-10 w-full max-w-5xl px-4 sm:px-8 lg:px-12 py-8 max-h-full overflow-y-auto"
+    >
+      <div id="peers-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 justify-items-center">
+        <!-- Dynamically populated with discovered LAN / Tab Peer Cards -->
+      </div>
+    </div>
+  </main>
+
+  <!-- 5. INCOMING FILE TRANSFER MODAL (FLIP-STYLE MINIMAL OVERLAY) -->
+  <div
+    id="incoming-modal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-white/85 backdrop-blur-md p-4"
+  >
+    <div class="w-full max-w-md bg-white hairline-all p-6 sm:p-8 shadow-2xl flex flex-col justify-between">
+      <!-- Header -->
+      <div class="flex items-center justify-between pb-4 hairline-b">
+        <div>
+          <span id="incoming-status-tag" class="font-meta text-[9px] tracking-[2.5px] text-[#888888] uppercase">
+            INCOMING P2P STREAM // 接收文件
+          </span>
+          <h3 id="incoming-sender-name" class="font-editorial text-2xl text-[#0a0a0a] mt-0.5">
+            From: 01 / 银盐终端
+          </h3>
+        </div>
+        <button
+          type="button"
+          data-cursor="ring"
+          onclick="closeIncomingModal()"
+          class="w-7 h-7 hairline-all flex items-center justify-center font-meta text-[10px] text-[#888888] hover:text-[#0a0a0a] hover:border-[#0a0a0a] transition-colors"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Visual Preview Area -->
+      <div class="my-5">
+        <div
+          id="incoming-image-wrap"
+          class="hidden w-full h-52 hairline-all bg-[#f6f6f6] overflow-hidden items-center justify-center mb-4"
+        >
+          <img
+            id="incoming-image-preview"
+            src=""
+            alt="Incoming Preview"
+            class="preview-monochrome w-full h-full object-contain"
+          />
+        </div>
+
+        <div class="flex items-baseline justify-between gap-2">
+          <p id="incoming-file-name" class="font-editorial text-xl text-[#0a0a0a] truncate">
+            filename.raw
+          </p>
+          <span id="incoming-file-size" class="font-meta text-[10px] tracking-[1.5px] text-[#888888] shrink-0 uppercase">
+            0.0 MB
+          </span>
+        </div>
+
+        <!-- Live Progress Bar & Tabular Telemetry -->
+        <div class="mt-3">
+          <div class="w-full h-[1.5px] bg-[#efefef] overflow-hidden">
+            <div id="incoming-progress-bar" class="h-full bg-[#0a0a0a] transition-all duration-75" style="width: 0%;"></div>
+          </div>
+          <div class="flex items-center justify-between mt-2 font-meta text-[9px] tracking-[2px] text-[#888888] uppercase">
+            <span id="incoming-telemetry-pct">0%</span>
+            <span id="incoming-telemetry-speed">WAITING...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions & Auto-Download Toggle -->
+      <div class="pt-4 hairline-t flex items-center justify-between gap-4">
+        <label data-cursor="ring" class="flex items-center space-x-2 font-meta text-[9px] tracking-[1.8px] text-[#888888] uppercase">
+          <input
+            id="auto-download-checkbox"
+            type="checkbox"
+            onchange="toggleAutoDownload(this.checked)"
+            class="accent-[#0a0a0a] w-3 h-3 rounded-none"
+          />
+          <span>AUTO-DOWNLOAD</span>
+        </label>
+
+        <a
+          id="incoming-download-btn"
+          href="#"
+          download
+          data-cursor="ring"
+          class="pointer-events-none opacity-40 px-5 py-2.5 bg-[#0a0a0a] text-white font-meta text-[9.5px] tracking-[2px] uppercase transition-opacity"
+        >
+          [ DOWNLOAD FILE ]
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. MINIMAL INLINE RENAME MODAL (NO NATIVE PROMPT) -->
+  <div
+    id="rename-modal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-white/80 backdrop-blur-xs p-4"
+  >
+    <div class="w-full max-w-sm bg-white hairline-all p-6 shadow-xl">
+      <p class="font-meta text-[9px] tracking-[2.5px] text-[#888888] uppercase">LOCAL IDENTITY // 设备名称</p>
+      <input
+        id="rename-input"
+        type="text"
+        maxlength="28"
+        class="w-full mt-3 p-2.5 hairline-all bg-[#f6f6f6] focus:bg-white focus:outline-none focus:border-[#0a0a0a] font-editorial text-xl text-[#0a0a0a] select-text"
+      />
+      <div class="mt-4 flex justify-end space-x-2">
+        <button
+          type="button"
+          data-cursor="ring"
+          onclick="closeRenameModal()"
+          class="px-4 py-1.5 hairline-all font-meta text-[9px] tracking-[2px] text-[#888888] uppercase"
+        >
+          CANCEL
+        </button>
+        <button
+          type="button"
+          data-cursor="ring"
+          onclick="saveDeviceName()"
+          class="px-4 py-1.5 bg-[#0a0a0a] text-white font-meta text-[9px] tracking-[2px] uppercase"
+        >
+          SAVE
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. BOTTOM MINIMAL FOOTER (1PX TOP HAIRLINE) -->
+  <footer class="w-full h-11 hairline-t bg-white px-4 sm:px-8 lg:px-12 flex items-center justify-between font-meta text-[9px] tracking-[2px] text-[#888888] uppercase z-30 shrink-0">
+    <span>END-TO-END P2P · NO SERVER STORAGE</span>
+    <span>© XIANGVISUALS</span>
+  </footer>
+
+  <!-- =========================================================================
+       PURE DUAL-TRANSPORT P2P ENGINE (WEBRTC SLOTS + BROADCASTCHANNEL)
+  ========================================================================== -->
+  <script>
+    const EDITORIAL_DEVICE_NAMES = [
+      '银盐工作站 Silver Halide',
+      '光影终端 Lumina Node',
+      '暗房主机 Darkroom Core',
+      '灰度视场 Grayscale Optic',
+      '中画幅阵列 Medium Format',
+      '几何切片 Geometric Slice',
+      '徕卡终端 Monochrom Pad',
+      '极简节点 Minimalist Peer'
+    ];
+
+    const MAX_ROOM_SLOTS = 6;
+    const CHUNK_SIZE = 64 * 1024; // 64KB binary chunks
+
+    const state = {
+      myId: 'peer-' + Math.random().toString(36).substring(2, 9),
+      roomCode: '2026',
+      deviceName: '',
+      deviceType: 'desktop', // 'desktop' | 'mobile' | 'tablet'
+      platformTag: 'WEB · P2P',
+      autoDownload: false,
+      targetPeerIdForFilePicker: null,
+
+      // Discovered Peers: Map<peerId, { id, name, deviceType, platformTag, transport, conn, progress }>
+      peers: new Map(),
+
+      // Transport 1: WebRTC PeerJS Slot Mesh
+      peerJs: null,
+      mySlotIndex: 1,
+      webrtcConns: new Map(), // peerId -> DataConnection
+      reconnectTimer: null,
+
+      // Transport 2: BroadcastChannel (Instant Multi-Tab Zero-Latency Mesh)
+      bc: null,
+
+      // Incoming File Reassembly State
+      incomingTransfers: new Map() // transferId -> { meta, chunks, receivedBytes, startTime }
+    };
+
+    /***************************************************************************
+     * 1. INITIALIZATION & FAST 0.7S VIEWFINDER INTRO
+     ***************************************************************************/
+    window.addEventListener('DOMContentLoaded', () => {
+      runFastIntro();
+      initCustomCursor();
+      detectLocalDeviceIdentity();
+      initRoomChannelFromUrlOrNetwork();
+      initFileInputListener();
+      initBroadcastChannelMesh();
+      initWebRTCSlotMesh();
     });
-    const file=new File([blob],'arrowflow.png',{type:'image/png'});
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-      try{await navigator.share({files:[file],title:'ArrowFlow'});return;}
-      catch(e){if(e?.name==='AbortError')return;}
+
+    function runFastIntro() {
+      const frame = document.getElementById('intro-frame');
+      const intro = document.getElementById('xv-intro');
+      requestAnimationFrame(() => {
+        if (frame) frame.classList.add('expand');
+      });
+      setTimeout(() => {
+        if (intro) intro.classList.add('is-done');
+      }, 680);
     }
-    const url=URL.createObjectURL(blob),a=document.createElement('a');
-    a.href=url;a.download='arrowflow.png';a.style.display='none';
-    document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),3000);
-  }catch(err){
-    console.error('ArrowFlow export error:',err);
-    alert('导出失败，请重试。');
-  }
-};
-$('fullscreen').onclick=()=>document.documentElement.requestFullscreen?.();
-</script>
+
+    function initCustomCursor() {
+      const cursor = document.getElementById('xv-cursor');
+      const label = document.getElementById('xv-cursor-label');
+      if (!cursor || window.matchMedia('(pointer: coarse)').matches) return;
+
+      let mouseX = -100, mouseY = -100;
+      let curX = -100, curY = -100;
+
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        const target = e.target.closest('[data-cursor]');
+        cursor.classList.remove('mode-ring', 'mode-peer');
+        if (target) {
+          const mode = target.getAttribute('data-cursor');
+          const text = target.getAttribute('data-cursor-label');
+          if (mode === 'peer') {
+            cursor.classList.add('mode-peer');
+            label.textContent = text || 'SEND';
+          } else if (mode === 'ring') {
+            cursor.classList.add('mode-ring');
+          }
+        }
+      });
+
+      function tick() {
+        curX += (mouseX - curX) * 0.45;
+        curY += (mouseY - curY) * 0.45;
+        cursor.style.transform = `translate3d(${curX}px, ${curY}px, 0) translate(-50%, -50%)`;
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function detectLocalDeviceIdentity() {
+      const ua = navigator.userAgent || '';
+      let os = 'DESKTOP';
+      let type = 'desktop';
+
+      if (/iPad|Tablet/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+        os = 'IPADOS';
+        type = 'tablet';
+      } else if (/iPhone|iPod/i.test(ua)) {
+        os = 'IOS';
+        type = 'mobile';
+      } else if (/Android/i.test(ua)) {
+        os = 'ANDROID';
+        type = /Mobile/i.test(ua) ? 'mobile' : 'tablet';
+      } else if (/Mac/i.test(ua)) {
+        os = 'MACOS';
+      } else if (/Win/i.test(ua)) {
+        os = 'WINDOWS';
+      } else if (/Linux/i.test(ua)) {
+        os = 'LINUX';
+      }
+
+      state.deviceType = type;
+      state.platformTag = `${os} · WEBRTC P2P`;
+
+      const savedName = sessionStorage.getItem('xv_device_name');
+      if (savedName) {
+        state.deviceName = savedName;
+      } else {
+        const hash = state.myId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+        state.deviceName = EDITORIAL_DEVICE_NAMES[hash % EDITORIAL_DEVICE_NAMES.length];
+      }
+
+      document.getElementById('local-device-name').textContent = state.deviceName;
+    }
+
+    function initRoomChannelFromUrlOrNetwork() {
+      const params = new URLSearchParams(window.location.search);
+      const urlRoom = (params.get('channel') || params.get('room') || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase();
+
+      if (urlRoom && urlRoom.length === 4) {
+        state.roomCode = urlRoom;
+      } else {
+        // Default shared deterministic code so devices opening xiangvisuals.com/file land in the same channel immediately
+        state.roomCode = '2026';
+      }
+
+      updateRoomChannelUI();
+
+      // Fetch public IP hash asynchronously so devices on the same Wi-Fi router share a deterministic LAN channel code if no URL param was forced
+      if (!urlRoom) {
+        fetch('https://api.ipify.org?format=json')
+          .then(r => r.json())
+          .then(data => {
+            if (data && data.ip) {
+              let hash = 0;
+              for (let i = 0; i < data.ip.length; i++) {
+                hash = ((hash << 5) - hash) + data.ip.charCodeAt(i);
+                hash |= 0;
+              }
+              const lanCode = String(1000 + (Math.abs(hash) % 9000));
+              if (lanCode !== state.roomCode) {
+                switchRoomChannel(lanCode);
+              }
+            }
+          })
+          .catch(() => {
+            // Keep default 2026 channel if offline or blocked
+          });
+      }
+
+      const input = document.getElementById('room-code-input');
+      input.addEventListener('change', () => {
+        const cleaned = input.value.trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        if (cleaned.length === 4 && cleaned !== state.roomCode) {
+          switchRoomChannel(cleaned);
+        } else {
+          input.value = state.roomCode;
+        }
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') input.blur();
+      });
+    }
+
+    function switchRoomChannel(newCode) {
+      state.roomCode = newCode;
+      updateRoomChannelUI();
+
+      // Clear old peers and reconnect on the new channel
+      state.peers.clear();
+      renderPeersStage();
+
+      if (state.bc) {
+        state.bc.postMessage({
+          type: 'ANNOUNCE',
+          roomCode: state.roomCode,
+          peer: getMyPublicDescriptor()
+        });
+      }
+      initWebRTCSlotMesh();
+    }
+
+    function updateRoomChannelUI() {
+      document.getElementById('room-code-input').value = state.roomCode;
+      document.getElementById('empty-channel-code').textContent = state.roomCode;
+      document.getElementById('qr-room-label').textContent = state.roomCode;
+
+      const shareUrl = `${window.location.origin}${window.location.pathname}?channel=${state.roomCode}`;
+      const qrImg = document.getElementById('qr-image');
+      if (qrImg) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=0a0a0a&bgcolor=ffffff&data=${encodeURIComponent(shareUrl)}`;
+      }
+    }
+
+    function getMyPublicDescriptor() {
+      return {
+        id: state.myId,
+        name: state.deviceName,
+        deviceType: state.deviceType,
+        platformTag: state.platformTag
+      };
+    }
+
+    /***************************************************************************
+     * 2. TRANSPORT 2: INSTANT BROADCASTCHANNEL MESH (MULTI-TAB FALLBACK)
+     ***************************************************************************/
+    function initBroadcastChannelMesh() {
+      if (!('BroadcastChannel' in window)) return;
+      state.bc = new BroadcastChannel('xv_pure_lan_file_mesh');
+
+      state.bc.onmessage = (ev) => {
+        const msg = ev.data;
+        if (!msg || msg.from === state.myId || msg.roomCode !== state.roomCode) return;
+
+        if (msg.type === 'ANNOUNCE') {
+          upsertPeer(msg.peer, 'LOCAL MESH', null);
+          state.bc.postMessage({
+            type: 'ANNOUNCE_ACK',
+            from: state.myId,
+            to: msg.peer.id,
+            roomCode: state.roomCode,
+            peer: getMyPublicDescriptor()
+          });
+        } else if (msg.type === 'ANNOUNCE_ACK' && msg.to === state.myId) {
+          upsertPeer(msg.peer, 'LOCAL MESH', null);
+        } else if (msg.type === 'PEER_LEFT') {
+          removePeer(msg.from);
+        } else if (msg.type === 'FILE_START' && msg.to === state.myId) {
+          onIncomingFileStart(msg);
+        } else if (msg.type === 'FILE_CHUNK' && msg.to === state.myId) {
+          onIncomingFileChunk(msg);
+        }
+      };
+
+      // Announce presence
+      state.bc.postMessage({
+        type: 'ANNOUNCE',
+        from: state.myId,
+        roomCode: state.roomCode,
+        peer: getMyPublicDescriptor()
+      });
+
+      window.addEventListener('beforeunload', () => {
+        if (state.bc) {
+          state.bc.postMessage({
+            type: 'PEER_LEFT',
+            from: state.myId,
+            roomCode: state.roomCode
+          });
+        }
+      });
+    }
+
+    /***************************************************************************
+     * 3. TRANSPORT 1: DETERMINISTIC WEBRTC ROOM SLOT MESH (PEERJS)
+     ***************************************************************************/
+    function initWebRTCSlotMesh() {
+      if (typeof Peer === 'undefined') return;
+
+      if (state.peerJs) {
+        try { state.peerJs.destroy(); } catch (e) {}
+        state.peerJs = null;
+      }
+      if (state.reconnectTimer) {
+        clearInterval(state.reconnectTimer);
+      }
+
+      claimSlotInRoom(1);
+    }
+
+    function claimSlotInRoom(slotIndex) {
+      if (slotIndex > MAX_ROOM_SLOTS) return;
+      const slotPeerId = `xv-lan-${state.roomCode.toLowerCase()}-slot-${slotIndex}`;
+
+      const peer = new Peer(slotPeerId, { debug: 0 });
+
+      peer.on('open', () => {
+        state.peerJs = peer;
+        state.mySlotIndex = slotIndex;
+        setConnectionStatus('ONLINE', true);
+
+        // Connect to all other slots in the same LAN channel
+        dialOtherRoomSlots();
+        state.reconnectTimer = setInterval(dialOtherRoomSlots, 6000);
+      });
+
+      peer.on('connection', (conn) => {
+        bindWebRTCDataConnection(conn);
+      });
+
+      peer.on('error', (err) => {
+        if (err && err.type === 'unavailable-id') {
+          // Slot is occupied by another device in this room; claim next slot
+          try { peer.destroy(); } catch (e) {}
+          claimSlotInRoom(slotIndex + 1);
+        }
+      });
+    }
+
+    function dialOtherRoomSlots() {
+      if (!state.peerJs || state.peerJs.disconnected) return;
+
+      for (let s = 1; s <= MAX_ROOM_SLOTS; s++) {
+        if (s === state.mySlotIndex) continue;
+        const targetSlotId = `xv-lan-${state.roomCode.toLowerCase()}-slot-${s}`;
+
+        // Only dial if we don't already have an open connection to that slot
+        let alreadyConnected = false;
+        state.webrtcConns.forEach((conn) => {
+          if (conn.peer === targetSlotId && conn.open) alreadyConnected = true;
+        });
+
+        if (!alreadyConnected) {
+          try {
+            const conn = state.peerJs.connect(targetSlotId, { reliable: true });
+            bindWebRTCDataConnection(conn);
+          } catch (e) {}
+        }
+      }
+    }
+
+    function bindWebRTCDataConnection(conn) {
+      conn.on('open', () => {
+        conn.send({
+          type: 'HELLO',
+          peer: getMyPublicDescriptor()
+        });
+      });
+
+      conn.on('data', (data) => {
+        if (!data || !data.type) return;
+
+        if (data.type === 'HELLO' && data.peer) {
+          if (data.peer.id === state.myId) {
+            conn.close();
+            return;
+          }
+          state.webrtcConns.set(data.peer.id, conn);
+          conn._logicalPeerId = data.peer.id;
+          upsertPeer(data.peer, 'WEBRTC P2P', conn);
+        } else if (data.type === 'FILE_START') {
+          onIncomingFileStart(data);
+        } else if (data.type === 'FILE_CHUNK') {
+          onIncomingFileChunk(data);
+        }
+      });
+
+      conn.on('close', () => {
+        if (conn._logicalPeerId) {
+          state.webrtcConns.delete(conn._logicalPeerId);
+          removePeer(conn._logicalPeerId);
+        }
+      });
+    }
+
+    function setConnectionStatus(label, ok) {
+      const dot = document.getElementById('status-dot');
+      const txt = document.getElementById('status-text');
+      if (dot) dot.className = `w-1.5 h-1.5 rounded-full ${ok ? 'bg-emerald-600' : 'bg-[#b2b2b2]'}`;
+      if (txt) txt.textContent = label;
+    }
+
+    /***************************************************************************
+     * 4. PEER MANAGEMENT & VIEWPORT STAGE RENDERING
+     ***************************************************************************/
+    function upsertPeer(peerDesc, transportType, conn) {
+      if (!peerDesc || peerDesc.id === state.myId) return;
+      const existing = state.peers.get(peerDesc.id);
+
+      state.peers.set(peerDesc.id, {
+        id: peerDesc.id,
+        name: peerDesc.name,
+        deviceType: peerDesc.deviceType || 'desktop',
+        platformTag: peerDesc.platformTag || 'WEBRTC P2P',
+        transport: transportType,
+        conn: conn || (existing ? existing.conn : null),
+        telemetry: existing ? existing.telemetry : null
+      });
+
+      renderPeersStage();
+    }
+
+    function removePeer(peerId) {
+      if (state.peers.has(peerId)) {
+        state.peers.delete(peerId);
+        renderPeersStage();
+      }
+    }
+
+    function renderPeersStage() {
+      const emptyEl = document.getElementById('empty-state');
+      const peersStage = document.getElementById('peers-stage');
+      const grid = document.getElementById('peers-grid');
+
+      const peerArray = Array.from(state.peers.values());
+
+      if (peerArray.length === 0) {
+        emptyEl.classList.remove('hidden');
+        peersStage.classList.add('hidden');
+        grid.innerHTML = '';
+        return;
+      }
+
+      emptyEl.classList.add('hidden');
+      peersStage.classList.remove('hidden');
+
+      // Adjust grid columns cleanly based on number of discovered peers
+      if (peerArray.length === 1) {
+        grid.className = 'grid grid-cols-1 max-w-sm mx-auto gap-5';
+      } else if (peerArray.length === 2) {
+        grid.className = 'grid grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto gap-6';
+      } else {
+        grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6';
+      }
+
+      grid.innerHTML = peerArray.map((peer, idx) => {
+        const indexStr = String(idx + 1).padStart(2, '0');
+        const tel = peer.telemetry;
+
+        return `
+          <div
+            id="peer-card-${peer.id}"
+            role="button"
+            tabindex="0"
+            data-cursor="peer"
+            data-cursor-label="SEND"
+            onclick="triggerFileSelectForPeer('${peer.id}')"
+            ondragover="onPeerDragOver(event, '${peer.id}')"
+            ondragleave="onPeerDragLeave(event, '${peer.id}')"
+            ondrop="onPeerDrop(event, '${peer.id}')"
+            class="peer-card w-full p-6 sm:p-7 flex flex-col justify-between text-left relative"
+          >
+            <!-- Top Row: Index Counter + Minimal 1px Device SVG -->
+            <div class="flex items-center justify-between pb-4 hairline-b">
+              <div class="flex items-baseline space-x-2">
+                <span class="font-editorial text-3xl text-[#0a0a0a] font-light">${indexStr}</span>
+                <span class="font-meta text-[8.5px] tracking-[2px] text-[#888888] uppercase">/ PEER</span>
+              </div>
+              <div class="w-8 h-8 hairline-all flex items-center justify-center text-[#0a0a0a]">
+                ${getDeviceSvgIcon(peer.deviceType)}
+              </div>
+            </div>
+
+            <!-- Middle Row: Editorial Device Name & Platform Tag -->
+            <div class="my-6">
+              <span class="font-meta text-[9px] tracking-[2px] text-[#888888] uppercase block">
+                ${escapeHtml(peer.platformTag)}
+              </span>
+              <h2 class="font-editorial text-2xl sm:text-3xl text-[#0a0a0a] font-light tracking-wide mt-1 truncate">
+                ${escapeHtml(peer.name)}
+              </h2>
+            </div>
+
+            <!-- Bottom Row: Drop Hint or Active 1.5px Progress Bar & Live Tabular Telemetry -->
+            <div class="pt-3 hairline-t">
+              ${tel ? `
+                <div>
+                  <div class="w-full h-[1.5px] bg-[#efefef] overflow-hidden mb-2">
+                    <div class="h-full bg-[#0a0a0a] transition-all duration-75" style="width: ${tel.pct}%;"></div>
+                  </div>
+                  <div class="flex items-center justify-between font-meta text-[9px] tracking-[1.8px] text-[#0a0a0a] uppercase">
+                    <span>${tel.pct}% · ${tel.speed} MB/S</span>
+                    <span class="text-[#888888]">${tel.sizeFormatted}</span>
+                  </div>
+                </div>
+              ` : `
+                <div class="flex items-center justify-between font-meta text-[9px] tracking-[2px] text-[#b2b2b2] uppercase">
+                  <span>CLICK OR DROP FILES</span>
+                  <span class="text-[#0a0a0a]">→</span>
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getDeviceSvgIcon(type) {
+      if (type === 'mobile') {
+        return `
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <rect x="6" y="2" width="12" height="20" rx="1" />
+            <line x1="10" y1="19" x2="14" y2="19" />
+          </svg>
+        `;
+      }
+      if (type === 'tablet') {
+        return `
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <rect x="4" y="2" width="16" height="20" rx="1" />
+            <circle cx="12" cy="19" r="0.8" fill="currentColor" />
+          </svg>
+        `;
+      }
+      return `
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+          <rect x="3" y="4" width="18" height="12" rx="1" />
+          <line x1="2" y1="19" x2="22" y2="19" />
+        </svg>
+      `;
+    }
+
+    /***************************************************************************
+     * 5. FILE SELECTION, DRAG-AND-DROP & 64KB CHUNK STREAMING WITH BACKPRESSURE
+     ***************************************************************************/
+    function initFileInputListener() {
+      const fileInput = document.getElementById('file-input');
+      fileInput.addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0 && state.targetPeerIdForFilePicker) {
+          await sendFilesToPeer(state.targetPeerIdForFilePicker, files);
+        }
+        fileInput.value = '';
+      });
+    }
+
+    function triggerFileSelectForPeer(peerId) {
+      state.targetPeerIdForFilePicker = peerId;
+      document.getElementById('file-input').click();
+    }
+
+    function onPeerDragOver(e, peerId) {
+      e.preventDefault();
+      e.stopPropagation();
+      const card = document.getElementById(`peer-card-${peerId}`);
+      if (card) card.classList.add('is-dragover');
+      const label = document.getElementById('xv-cursor-label');
+      if (label) label.textContent = 'DROP';
+    }
+
+    function onPeerDragLeave(e, peerId) {
+      e.preventDefault();
+      e.stopPropagation();
+      const card = document.getElementById(`peer-card-${peerId}`);
+      if (card) card.classList.remove('is-dragover');
+      const label = document.getElementById('xv-cursor-label');
+      if (label) label.textContent = 'SEND';
+    }
+
+    async function onPeerDrop(e, peerId) {
+      e.preventDefault();
+      e.stopPropagation();
+      const card = document.getElementById(`peer-card-${peerId}`);
+      if (card) card.classList.remove('is-dragover');
+
+      const files = Array.from(e.dataTransfer?.files || []);
+      if (files.length > 0) {
+        await sendFilesToPeer(peerId, files);
+      }
+    }
+
+    async function sendFilesToPeer(peerId, files) {
+      const peer = state.peers.get(peerId);
+      if (!peer) return;
+
+      for (const file of files) {
+        await streamSingleFile(peer, file);
+      }
+    }
+
+    async function streamSingleFile(peer, file) {
+      const buffer = await file.arrayBuffer();
+      const totalChunks = Math.max(1, Math.ceil(buffer.byteLength / CHUNK_SIZE));
+      const transferId = 'tx-' + Math.random().toString(36).substring(2, 10);
+      const startTime = performance.now();
+      const sizeFormatted = formatBytes(file.size);
+
+      const startHeader = {
+        type: 'FILE_START',
+        to: peer.id,
+        from: state.myId,
+        roomCode: state.roomCode,
+        transferId,
+        senderName: state.deviceName,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type || 'application/octet-stream',
+        totalChunks
+      };
+
+      const useWebRTC = peer.conn && peer.conn.open;
+      if (useWebRTC) {
+        peer.conn.send(startHeader);
+      } else if (state.bc) {
+        state.bc.postMessage(startHeader);
+      }
+
+      const rawDc = useWebRTC ? peer.conn.dataChannel : null;
+      if (rawDc) {
+        rawDc.bufferedAmountLowThreshold = 512 * 1024; // 512KB threshold
+      }
+
+      for (let i = 0; i < totalChunks; i++) {
+        const chunk = buffer.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+
+        // WebRTC DataChannel backpressure handling
+        if (rawDc && rawDc.bufferedAmount > 2 * 1024 * 1024) {
+          await new Promise((resolve) => {
+            const onLow = () => {
+              rawDc.removeEventListener('bufferedamountlow', onLow);
+              resolve();
+            };
+            rawDc.addEventListener('bufferedamountlow', onLow);
+            setTimeout(resolve, 60);
+          });
+        }
+
+        const chunkPacket = {
+          type: 'FILE_CHUNK',
+          to: peer.id,
+          from: state.myId,
+          roomCode: state.roomCode,
+          transferId,
+          index: i,
+          chunk
+        };
+
+        if (useWebRTC) {
+          peer.conn.send(chunkPacket);
+        } else if (state.bc) {
+          state.bc.postMessage(chunkPacket);
+        }
+
+        // Update inline peer telemetry every few chunks so UI progress is silky smooth
+        if (i % 3 === 0 || i === totalChunks - 1) {
+          const sentBytes = Math.min(file.size, (i + 1) * CHUNK_SIZE);
+          const pct = Math.round(((i + 1) / totalChunks) * 100);
+          const elapsedSec = Math.max(0.02, (performance.now() - startTime) / 1000);
+          const speed = ((sentBytes / (1024 * 1024)) / elapsedSec).toFixed(1);
+
+          peer.telemetry = { pct, speed, sizeFormatted };
+          renderPeersStage();
+
+          if (!useWebRTC && totalChunks > 4) {
+            await new Promise(r => setTimeout(r, 8));
+          }
+        }
+      }
+
+      setTimeout(() => {
+        if (state.peers.has(peer.id)) {
+          state.peers.get(peer.id).telemetry = null;
+          renderPeersStage();
+        }
+      }, 900);
+    }
+
+    /***************************************************************************
+     * 6. INCOMING FILE STREAM & MINIMAL GALLERY OVERLAY
+     ***************************************************************************/
+    function onIncomingFileStart(meta) {
+      state.incomingTransfers.set(meta.transferId, {
+        meta,
+        chunks: [],
+        receivedBytes: 0,
+        startTime: performance.now()
+      });
+
+      const modal = document.getElementById('incoming-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      document.getElementById('incoming-status-tag').textContent = 'INCOMING P2P STREAM // 正在接收';
+      document.getElementById('incoming-sender-name').textContent = `From: ${meta.senderName}`;
+      document.getElementById('incoming-file-name').textContent = meta.fileName;
+      document.getElementById('incoming-file-size').textContent = formatBytes(meta.fileSize);
+      document.getElementById('incoming-progress-bar').style.width = '0%';
+      document.getElementById('incoming-telemetry-pct').textContent = '0%';
+      document.getElementById('incoming-telemetry-speed').textContent = 'STREAMING...';
+
+      const imgWrap = document.getElementById('incoming-image-wrap');
+      const imgPreview = document.getElementById('incoming-image-preview');
+      imgWrap.classList.add('hidden');
+      imgWrap.classList.remove('flex');
+      imgPreview.classList.remove('is-complete');
+      imgPreview.src = '';
+
+      const dlBtn = document.getElementById('incoming-download-btn');
+      dlBtn.classList.add('pointer-events-none', 'opacity-40');
+    }
+
+    function onIncomingFileChunk(packet) {
+      const entry = state.incomingTransfers.get(packet.transferId);
+      if (!entry) return;
+
+      entry.chunks.push(packet.chunk);
+      const chunkLen = packet.chunk.byteLength || packet.chunk.size || 0;
+      entry.receivedBytes += chunkLen;
+
+      const pct = Math.min(100, Math.round((entry.chunks.length / entry.meta.totalChunks) * 100));
+      const elapsedSec = Math.max(0.02, (performance.now() - entry.startTime) / 1000);
+      const speed = ((entry.receivedBytes / (1024 * 1024)) / elapsedSec).toFixed(1);
+
+      document.getElementById('incoming-progress-bar').style.width = `${pct}%`;
+      document.getElementById('incoming-telemetry-pct').textContent = `${pct}%`;
+      document.getElementById('incoming-telemetry-speed').textContent = `${speed} MB/S · ${formatBytes(entry.receivedBytes)}`;
+
+      // Reassemble when complete
+      if (entry.chunks.length >= entry.meta.totalChunks) {
+        const blob = new Blob(entry.chunks, { type: entry.meta.mimeType });
+        const url = URL.createObjectURL(blob);
+
+        document.getElementById('incoming-status-tag').textContent = 'TRANSFER COMPLETE // 接收完成';
+        document.getElementById('incoming-telemetry-speed').textContent = `COMPLETE · ${speed} MB/S`;
+
+        const dlBtn = document.getElementById('incoming-download-btn');
+        dlBtn.href = url;
+        dlBtn.setAttribute('download', entry.meta.fileName);
+        dlBtn.classList.remove('pointer-events-none', 'opacity-40');
+
+        // Check if image for grayscale-to-color gallery reveal
+        const isImage = entry.meta.mimeType.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(entry.meta.fileName);
+        if (isImage) {
+          const imgWrap = document.getElementById('incoming-image-wrap');
+          const imgPreview = document.getElementById('incoming-image-preview');
+          imgPreview.src = url;
+          imgWrap.classList.remove('hidden');
+          imgWrap.classList.add('flex');
+          setTimeout(() => {
+            imgPreview.classList.add('is-complete');
+          }, 120);
+        }
+
+        if (state.autoDownload) {
+          dlBtn.click();
+        }
+
+        state.incomingTransfers.delete(packet.transferId);
+      }
+    }
+
+    function closeIncomingModal() {
+      const modal = document.getElementById('incoming-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function toggleAutoDownload(checked) {
+      state.autoDownload = checked;
+    }
+
+    /***************************************************************************
+     * 7. HEADER UI HELPERS (QR POPOVER, RENAME, DUPLICATE TAB TEST)
+     ***************************************************************************/
+    function toggleQrPopover(e) {
+      e.stopPropagation();
+      const pop = document.getElementById('qr-popover');
+      pop.classList.toggle('hidden');
+    }
+
+    function closeQrPopover() {
+      const pop = document.getElementById('qr-popover');
+      if (pop && !pop.classList.contains('hidden')) {
+        pop.classList.add('hidden');
+      }
+    }
+
+    function copyChannelUrl() {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?channel=${state.roomCode}`;
+      const ta = document.createElement('textarea');
+      ta.value = shareUrl;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      closeQrPopover();
+    }
+
+    function editLocalDeviceName() {
+      const modal = document.getElementById('rename-modal');
+      const input = document.getElementById('rename-input');
+      input.value = state.deviceName;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => input.select(), 50);
+    }
+
+    function closeRenameModal() {
+      const modal = document.getElementById('rename-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveDeviceName() {
+      const input = document.getElementById('rename-input');
+      const cleaned = input.value.trim();
+      if (cleaned) {
+        state.deviceName = cleaned;
+        sessionStorage.setItem('xv_device_name', cleaned);
+        document.getElementById('local-device-name').textContent = cleaned;
+
+        // Broadcast updated name to all peers
+        if (state.bc) {
+          state.bc.postMessage({
+            type: 'ANNOUNCE',
+            from: state.myId,
+            roomCode: state.roomCode,
+            peer: getMyPublicDescriptor()
+          });
+        }
+        state.webrtcConns.forEach((conn) => {
+          if (conn.open) {
+            conn.send({ type: 'HELLO', peer: getMyPublicDescriptor() });
+          }
+        });
+      }
+      closeRenameModal();
+    }
+
+    function openDuplicateTabForTest() {
+      const url = `${window.location.origin}${window.location.pathname}?channel=${state.roomCode}`;
+      window.open(url, '_blank');
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
 </body>
 </html>
