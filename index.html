@@ -3,42 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>XIANG VISUALS — DROP</title>
+  <title>XIANG VISUALS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=JetBrains+Mono:wght@300;400;500&family=Montserrat:wght@300;400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=JetBrains+Mono:wght@300;400&family=Noto+Serif+SC:wght@200;300;400&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-primary: #FFFFFF;
-      --bg-secondary: #F4F4F5;
-      --bg-overlay: rgba(255, 255, 255, 0.92);
-      --text-primary: #0A0A0A;
-      --text-secondary: #666666;
-      --text-muted: #A1A1AA;
-      --border-line: #E2E2E2;
-      --border-strong: #0A0A0A;
-      --accent-vermilion: #C82829;
-      
-      --font-brand: 'Cinzel', 'Noto Serif SC', serif;
-      --font-editorial: 'Noto Serif SC', serif;
-      --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+      --bg: #FFFFFF;
+      --bg-subtle: #F7F7F7;
+      --fg: #0A0A0A;
+      --fg-secondary: #767676;
+      --fg-muted: #BCBCBC;
+      --hairline: #E6E6E6;
+      --vermilion: #C82829;
+
+      --font-brand: 'Cinzel', serif;
+      --font-serif: 'Cormorant Garamond', 'Noto Serif SC', serif;
       --font-mono: 'JetBrains Mono', monospace;
-      
+
       --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
       --ease-silky: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-curtain: cubic-bezier(0.76, 0, 0.24, 1);
     }
 
     html[data-theme="dark"] {
-      --bg-primary: #0A0A0A;
-      --bg-secondary: #121214;
-      --bg-overlay: rgba(10, 10, 10, 0.92);
-      --text-primary: #F4F4F5;
-      --text-secondary: #888888;
-      --text-muted: #52525B;
-      --border-line: #222225;
-      --border-strong: #F4F4F5;
-      --accent-vermilion: #D9383A;
+      --bg: #080808;
+      --bg-subtle: #101010;
+      --fg: #F2F2F2;
+      --fg-secondary: #828282;
+      --fg-muted: #383838;
+      --hairline: #1E1E1E;
+      --vermilion: #D93234;
     }
 
     * {
@@ -48,1004 +43,1117 @@
       border-radius: 0 !important;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
-      font-family: var(--font-sans);
-      overflow: hidden;
-      transition: background-color 0.45s var(--ease-silky), color 0.45s var(--ease-silky);
       user-select: none;
     }
 
-    /* 瑞士建筑网格主框架 */
-    .grid-shell {
-      display: grid;
-      grid-template-rows: 60px 1fr 48px;
+    html, body {
       width: 100vw;
       height: 100vh;
-      border: 1px solid var(--border-line);
-      position: relative;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-serif);
+      transition: background-color 0.7s var(--ease-silky), color 0.7s var(--ease-silky);
     }
 
-    /* 顶栏 */
-    .header-bar {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      align-items: center;
-      border-bottom: 1px solid var(--border-line);
-      background: var(--bg-primary);
-      z-index: 20;
+    @media (pointer: fine) {
+      * { cursor: none !important; }
     }
 
-    .brand-cell {
+    /* 胶片微噪点层 */
+    .film-grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 90;
+      opacity: 0.032;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* 开场几何百叶窗加载器 */
+    .kinetic-loader {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 300;
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 0 28px;
-      height: 100%;
+      justify-content: center;
+      pointer-events: none;
+      transition: opacity 0.8s var(--ease-curtain);
     }
-
-    .brand-title {
-      font-family: var(--font-brand);
-      font-size: 15px;
-      font-weight: 500;
-      letter-spacing: 3.5px;
-      color: var(--text-primary);
-      text-decoration: none;
+    .kinetic-loader.done {
+      opacity: 0;
     }
-
-    .brand-divider {
+    .loader-slats {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      height: 36vh;
+    }
+    .slat {
       width: 1px;
-      height: 14px;
-      background: var(--border-line);
-    }
-
-    .brand-sub {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 1.5px;
-      color: var(--text-secondary);
-    }
-
-    .header-cell {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 0 24px;
       height: 100%;
-      border-left: 1px solid var(--border-line);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-secondary);
+      background: var(--fg);
+      transform: scaleY(0);
+      transform-origin: center;
     }
 
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      background-color: var(--text-muted);
-      display: inline-block;
-      transition: background-color 0.3s var(--ease-out);
-    }
-
-    .status-dot.online {
-      background-color: var(--accent-vermilion);
-      box-shadow: 0 0 8px rgba(200, 40, 41, 0.45);
-    }
-
-    .room-btn, .icon-action {
-      background: transparent;
-      border: none;
-      color: var(--text-primary);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 1px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      height: 100%;
-      padding: 0 4px;
-      transition: opacity 0.25s var(--ease-out);
-    }
-
-    .room-btn:hover, .icon-action:hover {
-      opacity: 0.6;
-    }
-
-    /* 中心画布区域 */
-    .stage-area {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      display: flex;
-       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      padding: 32px;
-    }
-
-    /* 建筑取景框线与十字准星 */
-    .viewfinder-frame {
-      position: absolute;
-      inset: 28px;
-      border: 1px solid var(--border-line);
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .vf-corner {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      border-color: var(--text-primary);
-      border-style: solid;
-      border-width: 0;
-      transition: all 0.4s var(--ease-out);
-    }
-    .vf-tl { top: -1px; left: -1px; border-top-width: 1.5px; border-left-width: 1.5px; }
-    .vf-tr { top: -1px; right: -1px; border-top-width: 1.5px; border-right-width: 1.5px; }
-    .vf-bl { bottom: -1px; left: -1px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
-    .vf-br { bottom: -1px; right: -1px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
-
-    .stage-area.drag-active .vf-corner {
-      width: 24px;
-      height: 24px;
-      border-color: var(--accent-vermilion);
-    }
-
-    /* 中心十字微标 */
-    .center-crosshair {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 24px;
-      height: 24px;
-      pointer-events: none;
-      opacity: 0.25;
-      z-index: 1;
-    }
-    .center-crosshair::before, .center-crosshair::after {
-      content: '';
-      position: absolute;
-      background: var(--text-primary);
-    }
-    .center-crosshair::before { top: 11.5px; left: 0; width: 24px; height: 1px; }
-    .center-crosshair::after { left: 11.5px; top: 0; width: 1px; height: 24px; }
-
-    /* 空状态（无任何演示设备） */
-    .empty-state {
-      position: relative;
-      z-index: 5;
-      text-align: center;
-      max-width: 420px;
-      padding: 40px 24px;
-      transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
-    }
-
-    .empty-index {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      letter-spacing: 2.5px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .scan-line-indicator {
-      display: inline-block;
-      width: 28px;
-      height: 1px;
-      background: var(--border-line);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .scan-line-indicator::after {
-      content: '';
-      position: absolute;
+    /* 自定义磁吸反色光标 */
+    .custom-cursor {
+      position: fixed;
       top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: var(--accent-vermilion);
-      animation: scanSlide 2.4s infinite var(--ease-silky);
-    }
-
-    @keyframes scanSlide {
-      0% { left: -100%; }
-      50% { left: 0%; }
-      100% { left: 100%; }
-    }
-
-    .empty-title {
-      font-family: var(--font-editorial);
-      font-size: clamp(22px, 2.5vw, 30px);
-      font-weight: 300;
-      letter-spacing: 2px;
-      color: var(--text-primary);
-      margin-bottom: 12px;
-    }
-
-    .empty-desc {
-      font-size: 12px;
-      line-height: 1.8;
-      color: var(--text-secondary);
-      font-weight: 300;
-    }
-
-    /* 真实设备网格列表 */
-    .peers-grid {
-      position: relative;
-      z-index: 10;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
-      gap: -1px;
-      max-width: 960px;
-      width: 100%;
+      left: 0;
+      width: 8px;
+      height: 8px;
+      background: #FFFFFF;
+      mix-blend-mode: difference;
+      pointer-events: none;
+      z-index: 999;
+      transform: translate(-50%, -50%);
+      transition: width 0.35s var(--ease-out), height 0.35s var(--ease-out), background-color 0.35s var(--ease-out), border 0.35s var(--ease-out);
+      display: flex;
+      align-items: center;
       justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: #000000;
+      overflow: hidden;
+    }
+    .custom-cursor.is-hover {
+      width: 44px;
+      height: 44px;
+    }
+    .custom-cursor.is-slice {
+      width: 68px;
+      height: 68px;
+    }
+    @media (pointer: coarse) {
+      .custom-cursor { display: none; }
     }
 
-    .peers-grid:empty {
-      display: none;
-    }
-
-    /* 设备画廊展卡 */
-    .peer-card {
-      background: var(--bg-primary);
-      border: 1px solid var(--border-line);
-      padding: 28px 24px 22px;
+    /* 建筑画廊主骨架 */
+    .architectural-frame {
       position: relative;
-      cursor: pointer;
-      transition: border-color 0.3s var(--ease-out), transform 0.3s var(--ease-out), background-color 0.3s var(--ease-out);
+      width: 100vw;
+      height: 100vh;
+      padding: 36px 48px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 190px;
-      margin: -0.5px;
     }
 
-    .peer-card:hover, .peer-card.drag-over {
-      border-color: var(--border-strong);
-      z-index: 2;
-      background: var(--bg-secondary);
-    }
-
-    .peer-card.drag-over {
-      border-color: var(--accent-vermilion);
-    }
-
-    .peer-top {
+    /* 顶部极简横梁 */
+    .top-beam {
+      position: relative;
+      z-index: 20;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 24px;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--hairline);
     }
 
-    .peer-index {
+    .brand-mark {
+      font-family: var(--font-brand);
+      font-size: 13px;
+      letter-spacing: 5px;
+      color: var(--fg);
+      text-decoration: none;
+      font-weight: 400;
+    }
+
+    .top-meta {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+
+    .channel-trigger {
+      background: none;
+      border: none;
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 0;
+    }
+
+    .signal-beacon {
+      width: 5px;
+      height: 5px;
+      background: var(--fg-muted);
+      transition: background-color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
+    }
+    .signal-beacon.active {
+      background: var(--vermilion);
+      box-shadow: 0 0 10px var(--vermilion);
+    }
+
+    .theme-dot-btn {
+      background: none;
+      border: none;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .theme-dot-btn::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border: 1px solid var(--fg);
+      background: var(--fg);
+      transition: transform 0.4s var(--ease-out);
+    }
+    .theme-dot-btn:hover::after {
+      transform: scale(1.35);
+    }
+
+    /* 中央主舞台（光学取景框 + 声呐 Canvas + 动态手风琴切片） */
+    .center-stage {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+
+    #sonarCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 两侧竖排建筑标尺 */
+    .side-pillar {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      writing-mode: vertical-rl;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 3.5px;
+      color: var(--fg-muted);
+      z-index: 5;
+      pointer-events: none;
+    }
+    .side-pillar.left { left: 0; }
+    .side-pillar.right { right: 0; }
+
+    /* 待机静谧中心视窗 */
+    .idle-monolith {
+      position: relative;
+      z-index: 5;
+      width: min(44vw, 520px);
+      height: min(56vh, 460px);
+      border: 1px solid var(--hairline);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s var(--ease-silky), transform 0.6s var(--ease-silky), border-color 0.4s var(--ease-out);
+    }
+
+    .center-stage.drag-over .idle-monolith,
+    .center-stage.drag-over .slice-item {
+      border-color: var(--vermilion);
+    }
+
+    /* 四角精密准星 */
+    .reticle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-color: var(--fg);
+      border-style: solid;
+      border-width: 0;
+      transition: width 0.4s var(--ease-out), height 0.4s var(--ease-out), border-color 0.4s var(--ease-out);
+    }
+    .r-tl { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; }
+    .r-tr { top: -1px; right: -1px; border-top-width: 1px; border-right-width: 1px; }
+    .r-bl { bottom: -1px; left: -1px; border-bottom-width: 1px; border-left-width: 1px; }
+    .r-br { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
+
+    .idle-title {
+      font-family: var(--font-serif);
+      font-weight: 200;
+      font-size: clamp(24px, 2.8vw, 36px);
+      letter-spacing: 8px;
+      color: var(--fg);
+      margin-right: -8px;
+      margin-bottom: 16px;
+    }
+
+    .idle-sub {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--fg-secondary);
+    }
+
+    /* 动态手风琴切片容器（当有设备接入时展现） */
+    .kinetic-strip {
+      position: relative;
+      z-index: 10;
+      width: min(78vw, 1080px);
+      height: min(64vh, 540px);
+      display: none;
+      align-items: stretch;
+      border-left: 1px solid var(--hairline);
+    }
+    .kinetic-strip.has-peers {
+      display: flex;
+    }
+
+    .slice-item {
+      position: relative;
+      flex: 1 1 0%;
+      border-top: 1px solid var(--hairline);
+      border-bottom: 1px solid var(--hairline);
+      border-right: 1px solid var(--hairline);
+      background: var(--bg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 32px 28px;
+      transition: background-color 0.5s var(--ease-silky), border-color 0.4s var(--ease-out);
+    }
+
+    .slice-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--bg-subtle);
+      opacity: 0;
+      transition: opacity 0.5s var(--ease-silky);
+      pointer-events: none;
+    }
+
+    .slice-item.is-focused::before {
+      opacity: 1;
+    }
+
+    .slice-header {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--fg-muted);
+    }
+
+    .slice-status-dot {
+      width: 4px;
+      height: 4px;
+      background: var(--fg);
+    }
+    .slice-item.is-focused .slice-status-dot {
+      background: var(--vermilion);
+    }
+
+    /* 切片中央建筑排版 */
+    .slice-body {
+      position: relative;
+      z-index: 2;
+      my: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slice-name {
+      font-family: var(--font-serif);
+      font-weight: 300;
+      font-size: clamp(26px, 3vw, 42px);
+      letter-spacing: 2px;
+      color: var(--fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: transform 0.5s var(--ease-out);
+    }
+
+    .slice-hint {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--fg-secondary);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.45s var(--ease-out), transform 0.45s var(--ease-out);
+    }
+
+    .slice-item.is-focused .slice-hint {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .slice-footer {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 1.5px;
-      color: var(--text-muted);
+      color: var(--fg-secondary);
     }
 
-    .peer-type-icon {
-      font-size: 18px;
-      color: var(--text-primary);
-    }
-
-    .peer-name {
-      font-family: var(--font-editorial);
-      font-size: 20px;
-      font-weight: 400;
-      letter-spacing: 0.5px;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-    }
-
-    .peer-meta {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-secondary);
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .peer-actions {
-      margin-top: 22px;
-      padding-top: 14px;
-      border-top: 1px solid var(--border-line);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .action-btn {
+    .slice-action-link {
       background: none;
       border: none;
       font-family: var(--font-mono);
       font-size: 10px;
-      letter-spacing: 1px;
-      color: var(--text-secondary);
-      cursor: pointer;
+      letter-spacing: 2px;
+      color: var(--fg-secondary);
       padding: 4px 0;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: color 0.2s var(--ease-out);
+      border-bottom: 1px solid transparent;
+      transition: color 0.3s, border-color 0.3s;
+    }
+    .slice-action-link:hover {
+      color: var(--fg);
+      border-color: var(--fg);
     }
 
-    .action-btn:hover {
-      color: var(--text-primary);
-    }
-
-    /* 传输进度条（极简 1.5px 底边朱砂红） */
-    .peer-progress-track {
+    /* 切片底部朱砂红传输流体线 */
+    .slice-progress {
       position: absolute;
       bottom: 0;
       left: 0;
-      width: 100%;
       height: 2px;
-      background: transparent;
-      overflow: hidden;
-    }
-
-    .peer-progress-bar {
       width: 0%;
-      height: 100%;
-      background: var(--accent-vermilion);
-      transition: width 0.15s linear;
+      background: var(--vermilion);
+      z-index: 5;
+      transition: width 0.12s linear;
     }
 
-    /* 底栏（EXIF 参数条风格） */
-    .footer-bar {
-      display: grid;
-      grid-template-columns: 1fr auto;
+    /* 底部 EXIF 铭牌栏 */
+    .bottom-beam {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      border-top: 1px solid var(--border-line);
-      background: var(--bg-primary);
-      padding: 0 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--hairline);
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--text-secondary);
-      z-index: 20;
+      letter-spacing: 2px;
+      color: var(--fg-secondary);
     }
 
-    .self-identity {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .self-label {
-      color: var(--text-muted);
-    }
-
-    .self-name-btn {
+    .identity-btn {
       background: none;
       border: none;
-      border-bottom: 1px dashed var(--border-line);
-      color: var(--text-primary);
+      color: var(--fg);
       font-family: var(--font-mono);
       font-size: 11px;
-      padding-bottom: 1px;
-      cursor: pointer;
-      transition: border-color 0.2s;
+      letter-spacing: 2px;
+      padding-bottom: 2px;
+      border-bottom: 1px solid var(--hairline);
+      transition: border-color 0.3s var(--ease-out);
+    }
+    .identity-btn:hover {
+      border-color: var(--fg);
     }
 
-    .self-name-btn:hover {
-      border-color: var(--text-primary);
-    }
-
-    .shortcut-hint {
-      color: var(--text-muted);
-      font-size: 10px;
-      letter-spacing: 0.5px;
-    }
-
-    /* 模态框（接收确认 / 发送文字 / 房间码修改） */
-    .modal-backdrop {
+    /* 极简画廊级弹窗（无外框阴影，纯1px结构线与背景微模糊） */
+    .sheet-overlay {
       position: fixed;
       inset: 0;
-      background: var(--bg-overlay);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 100;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      z-index: 200;
       display: flex;
       align-items: center;
       justify-content: center;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.35s var(--ease-out);
+      transition: opacity 0.45s var(--ease-out);
       padding: 24px;
     }
-
-    .modal-backdrop.active {
+    html[data-theme="dark"] .sheet-overlay {
+      background: rgba(8, 8, 8, 0.88);
+    }
+    .sheet-overlay.active {
       opacity: 1;
       pointer-events: auto;
     }
 
-    .modal-box {
+    .sheet-dialog {
       width: 100%;
       max-width: 440px;
-      background: var(--bg-primary);
-      border: 1px solid var(--border-strong);
-      padding: 32px;
-      transform: translateY(12px);
-      transition: transform 0.35s var(--ease-out);
+      background: var(--bg);
+      border: 1px solid var(--fg);
+      padding: 40px 36px;
+      position: relative;
+      transform: translateY(16px);
+      transition: transform 0.45s var(--ease-out);
     }
-
-    .modal-backdrop.active .modal-box {
+    .sheet-overlay.active .sheet-dialog {
       transform: translateY(0);
     }
 
-    .modal-eyebrow {
+    .sheet-index {
       font-family: var(--font-mono);
-      font-size: 10px;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--vermilion);
+      margin-bottom: 12px;
+    }
+
+    .sheet-heading {
+      font-family: var(--font-serif);
+      font-weight: 300;
+      font-size: 26px;
       letter-spacing: 2px;
-      color: var(--accent-vermilion);
-      margin-bottom: 10px;
+      color: var(--fg);
+      margin-bottom: 28px;
     }
 
-    .modal-title {
-      font-family: var(--font-editorial);
-      font-size: 22px;
-      font-weight: 400;
-      color: var(--text-primary);
-      margin-bottom: 20px;
-    }
-
-    .modal-preview {
+    .sheet-preview-img {
       width: 100%;
-      max-height: 220px;
+      max-height: 240px;
       object-fit: contain;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-line);
-      margin-bottom: 16px;
+      border: 1px solid var(--hairline);
+      background: var(--bg-subtle);
+      margin-bottom: 20px;
       display: none;
     }
 
-    .modal-meta-list {
-      border-top: 1px solid var(--border-line);
-      border-bottom: 1px solid var(--border-line);
-      padding: 12px 0;
-      margin-bottom: 24px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .meta-row {
-      display: flex;
-      justify-content: space-between;
-      color: var(--text-secondary);
-    }
-
-    .meta-row span:last-child {
-      color: var(--text-primary);
-      word-break: break-all;
-      text-align: right;
-      max-width: 70%;
-    }
-
-    .modal-input, .modal-textarea {
-      width: 100%;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-line);
-      color: var(--text-primary);
-      font-family: var(--font-mono);
-      font-size: 12px;
-      padding: 12px 14px;
-      margin-bottom: 24px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .modal-textarea {
-      min-height: 110px;
-      resize: vertical;
-      font-family: var(--font-sans);
-      line-height: 1.6;
-    }
-
-    .modal-input:focus, .modal-textarea:focus {
-      border-color: var(--border-strong);
-    }
-
-    .modal-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .btn- architectural {
-      height: 40px;
-      border: 1px solid var(--border-line);
-      background: transparent;
-      color: var(--text-primary);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      transition: all 0.25s var(--ease-out);
-    }
-
-    .btn-architectural:hover {
-      border-color: var(--border-strong);
-    }
-
-    .btn-architectural.primary {
-      background: var(--text-primary);
-      color: var(--bg-primary);
-      border-color: var(--text-primary);
-    }
-
-    .btn-architectural.primary:hover {
-      opacity: 0.86;
-    }
-
-    /* 顶部轻提示 Toast */
-    .toast-bar {
-      position: fixed;
-      top: 76px;
-      left: 50%;
-      transform: translate(-50%, -16px);
-      background: var(--text-primary);
-      color: var(--bg-primary);
+    .sheet-specs {
+      border-top: 1px solid var(--hairline);
+      border-bottom: 1px solid var(--hairline);
+      padding: 16px 0;
+      margin-bottom: 28px;
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 1px;
-      padding: 10px 20px;
-      z-index: 200;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.3s var(--ease-out);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .toast-bar.show {
+    .spec-line {
+      display: flex;
+      justify-content: space-between;
+      color: var(--fg-secondary);
+    }
+    .spec-line span:last-child {
+      color: var(--fg);
+      text-align: right;
+      max-width: 72%;
+      word-break: break-all;
+    }
+
+    .minimal-input, .minimal-textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--fg);
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      letter-spacing: 2px;
+      padding: 12px 0;
+      margin-bottom: 32px;
+      outline: none;
+    }
+    .minimal-textarea {
+      border: 1px solid var(--hairline);
+      padding: 14px;
+      min-height: 110px;
+      font-family: var(--font-serif);
+      font-size: 16px;
+      letter-spacing: 1px;
+      resize: none;
+      transition: border-color 0.3s;
+    }
+    .minimal-textarea:focus {
+      border-color: var(--fg);
+    }
+
+    .sheet-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .slab-btn {
+      height: 42px;
+      border: 1px solid var(--hairline);
+      background: transparent;
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 3px;
+      transition: all 0.3s var(--ease-out);
+    }
+    .slab-btn:hover {
+      border-color: var(--fg);
+    }
+    .slab-btn.solid {
+      background: var(--fg);
+      color: var(--bg);
+      border-color: var(--fg);
+    }
+    .slab-btn.solid:hover {
+      opacity: 0.85;
+    }
+
+    /* 顶部极简浮现通知 */
+    .whisper-toast {
+      position: fixed;
+      top: 36px;
+      left: 50%;
+      transform: translate(-50%, -14px);
+      background: var(--fg);
+      color: var(--bg);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      padding: 9px 22px;
+      z-index: 400;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s var(--ease-out);
+    }
+    .whisper-toast.show {
       opacity: 1;
       transform: translate(-50%, 0);
     }
 
-    @media (max-width: 640px) {
-      .grid-shell {
-        grid-template-rows: 54px 1fr 44px;
+    @media (max-width: 768px) {
+      .architectural-frame { padding: 20px 24px; }
+      .side-pillar { display: none; }
+      .idle-monolith { width: 88vw; height: 46vh; }
+      .kinetic-strip {
+        width: 90vw;
+        height: 62vh;
+        flex-direction: column;
+        border-left: none;
+        border-top: 1px solid var(--hairline);
       }
-      .brand-cell { padding: 0 16px; }
-      .brand-sub { display: none; }
-      .brand-divider { display: none; }
-      .header-cell { padding: 0 14px; }
-      .viewfinder-frame { inset: 14px; }
-      .footer-bar { padding: 0 16px; }
-      .shortcut-hint { display: none; }
+      .slice-item {
+        border-top: none;
+        border-left: 1px solid var(--hairline);
+        padding: 20px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="grid-shell">
-    <!-- 顶部结构导航栏 -->
-    <header class="header-bar">
-      <div class="brand-cell">
-        <a href="https://xiangvisuals.com/" target="_blank" rel="noopener" class="brand-title">XIANG VISUALS</a>
-        <span class="brand-divider"></span>
-        <span class="brand-sub">LOCAL DROP</span>
-      </div>
+  <div class="film-grain"></div>
 
-      <div class="header-cell">
-        <span class="status-dot" id="signalDot"></span>
-        <button class="room-btn" id="roomBtn" title="点击修改配对频道码">
-          <span>CH // <strong id="roomCodeDisplay">----</strong></span>
-        </button>
-      </div>
+  <!-- 1. 纯几何建筑百叶窗开场 -->
+  <div class="kinetic-loader" id="kineticLoader">
+    <div class="loader-slats">
+      <div class="slat" data-d="0.12"></div>
+      <div class="slat" data-d="0.06"></div>
+      <div class="slat" data-d="0"></div>
+      <div class="slat" data-d="0.06"></div>
+      <div class="slat" data-d="0.12"></div>
+    </div>
+  </div>
 
-      <div class="header-cell">
-        <button class="icon-action" id="themeToggleBtn" title="切换明暗主题">
-          <i class="ri-contrast-2-line" style="font-size: 15px;"></i>
+  <!-- 2. 磁吸差值光标 -->
+  <div class="custom-cursor" id="customCursor"></div>
+
+  <!-- 3. 建筑网格主视口 -->
+  <div class="architectural-frame">
+    <header class="top-beam">
+      <a href="https://xiangvisuals.com/" target="_blank" rel="noopener" class="brand-mark" data-cursor="hover">XIANG VISUALS</a>
+      <div class="top-meta">
+        <button class="channel-trigger" id="roomTrigger" data-cursor="hover" title="配对频道">
+          <span class="signal-beacon" id="signalBeacon"></span>
+          <span id="roomCodeText">0411</span>
         </button>
+        <button class="theme-dot-btn" id="themeToggle" data-cursor="hover" title="明暗场切换"></button>
       </div>
     </header>
 
-    <!-- 中心画廊级工作区 -->
-    <main class="stage-area" id="stageArea">
-      <div class="viewfinder-frame">
-        <div class="vf-corner vf-tl"></div>
-        <div class="vf-corner vf-tr"></div>
-        <div class="vf-corner vf-bl"></div>
-        <div class="vf-corner vf-br"></div>
+    <main class="center-stage" id="centerStage">
+      <canvas id="sonarCanvas"></canvas>
+
+      <div class="side-pillar left">OPTICAL P2P FIELD</div>
+      <div class="side-pillar right" id="coordPillar">38.9140° N, 121.6147° E</div>
+
+      <!-- 静谧待机取景器（无任何虚假节点） -->
+      <div class="idle-monolith" id="idleMonolith">
+        <div class="reticle r-tl"></div>
+        <div class="reticle r-tr"></div>
+        <div class="reticle r-bl"></div>
+        <div class="reticle r-br"></div>
+        <h1 class="idle-title">静候场域接入</h1>
+        <p class="idle-sub" id="idleSubText">CH // 0411</p>
       </div>
 
-      <div class="center-crosshair" id="centerCrosshair"></div>
-
-      <!-- 纯净待机空状态（无任何虚假设备） -->
-      <div class="empty-state" id="emptyState">
-        <div class="empty-index">
-          <span>WAITING FOR PEERS</span>
-          <span class="scan-line-indicator"></span>
-        </div>
-        <h1 class="empty-title">等待附近设备接入</h1>
-        <p class="empty-desc">
-          在其他设备打开本页面并保持相同频道码（CH），<br/>
-          即可建立点对点加密直连。
-        </p>
-      </div>
-
-      <!-- 真实在线节点网格 -->
-      <div class="peers-grid" id="peersGrid"></div>
+      <!-- 阻尼手风琴画廊切片（真实设备接入后浮现） -->
+      <div class="kinetic-strip" id="kineticStrip"></div>
     </main>
 
-    <!-- 底部设备信息栏 -->
-    <footer class="footer-bar">
-      <div class="self-identity">
-        <span class="self-label">本机标识 //</span>
-        <button class="self-name-btn" id="selfNameBtn" title="点击修改本机名称">加载中...</button>
-      </div>
-      <div class="shortcut-hint">支持直接拖拽文件 或 Ctrl/Cmd + V 粘贴发送</div>
+    <footer class="bottom-beam">
+      <button class="identity-btn" id="selfIdentityBtn" data-cursor="hover">NODE</button>
+      <span id="peerCountIndicator">00 ONLINE</span>
     </footer>
   </div>
 
-  <!-- 隐藏的文件选择器 -->
-  <input type="file" id="fileInput" multiple style="display: none;" />
+  <input type="file" id="hiddenFileInput" multiple style="display: none;" />
 
-  <!-- 模态框：接收文件/文本 -->
-  <div class="modal-backdrop" id="receiveModal">
-    <div class="modal-box">
-      <div class="modal-eyebrow" id="recEyebrow">INCOMING // 收到投递</div>
-      <h2 class="modal-title" id="recTitle">文件接收确认</h2>
-      <img class="modal-preview" id="recPreviewImg" alt="Preview" />
-      <div class="modal-meta-list" id="recMetaList"></div>
-      <div class="modal-actions">
-        <button class="btn-architectural" id="recDeclineBtn">忽略</button>
-        <button class="btn-architectural primary" id="recAcceptBtn">保存</button>
+  <!-- 接收投递确认单 -->
+  <div class="sheet-overlay" id="receiveSheet">
+    <div class="sheet-dialog">
+      <div class="reticle r-tl"></div>
+      <div class="reticle r-tr"></div>
+      <div class="reticle r-bl"></div>
+      <div class="reticle r-br"></div>
+      <div class="sheet-index" id="recIndex">INCOMING</div>
+      <h2 class="sheet-heading" id="recHeading">收到投递</h2>
+      <img class="sheet-preview-img" id="recImg" alt="Preview" />
+      <div class="sheet-specs" id="recSpecs"></div>
+      <div class="sheet-controls">
+        <button class="slab-btn" id="recDismissBtn" data-cursor="hover">忽略</button>
+        <button class="slab-btn solid" id="recSaveBtn" data-cursor="hover">保存</button>
       </div>
     </div>
   </div>
 
-  <!-- 模态框：发送文本或修改设置 -->
-  <div class="modal-backdrop" id="inputModal">
-    <div class="modal-box">
-      <div class="modal-eyebrow" id="inpEyebrow">MESSAGE // 文本传输</div>
-      <h2 class="modal-title" id="inpTitle">发送内容</h2>
-      <input type="text" class="modal-input" id="inpTextField" style="display: none;" />
-      <textarea class="modal-textarea" id="inpAreaField" placeholder="在此输入文本或链接..."></textarea>
-      <div class="modal-actions">
-        <button class="btn-architectural" id="inpCancelBtn">取消</button>
-        <button class="btn-architectural primary" id="inpConfirmBtn">确认</button>
+  <!-- 极简输入面板（修改频道 / 修改本机名 / 投递文字） -->
+  <div class="sheet-overlay" id="promptSheet">
+    <div class="sheet-dialog">
+      <div class="reticle r-tl"></div>
+      <div class="reticle r-tr"></div>
+      <div class="reticle r-bl"></div>
+      <div class="reticle r-br"></div>
+      <div class="sheet-index" id="prmIndex">CONFIG</div>
+      <h2 class="sheet-heading" id="prmHeading">参数设定</h2>
+      <input type="text" class="minimal-input" id="prmInput" style="display: none;" />
+      <textarea class="minimal-textarea" id="prmTextarea" placeholder="输入内容..."></textarea>
+      <div class="sheet-controls">
+        <button class="slab-btn" id="prmCancelBtn" data-cursor="hover">取消</button>
+        <button class="slab-btn solid" id="prmOkBtn" data-cursor="hover">确认</button>
       </div>
     </div>
   </div>
 
-  <!-- 状态提示 -->
-  <div class="toast-bar" id="toastBar"></div>
+  <div class="whisper-toast" id="whisperToast"></div>
 
-  <!-- 引入轻量 MQTT 客户端用于跨设备零配置 WebRTC 信令握手 -->
   <script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
   <script>
     (function () {
-      // ================== 1. 主题与基础状态 ==================
+      // ================== 1. 开场几何百叶窗序列 ==================
+      const loader = document.getElementById('kineticLoader');
+      const slats = loader.querySelectorAll('.slat');
+      slats.forEach(slat => {
+        const d = parseFloat(slat.getAttribute('data-d')) * 1000;
+        slat.animate([
+          { transform: 'scaleY(0)' },
+          { transform: 'scaleY(1)', offset: 0.45 },
+          { transform: 'scaleY(0)' }
+        ], {
+          duration: 1150,
+          delay: d,
+          easing: 'cubic-bezier(0.76, 0, 0.24, 1)',
+          fill: 'forwards'
+        });
+      });
+      setTimeout(() => loader.classList.add('done'), 1350);
+
+      // ================== 2. 磁吸反色光标引擎 ==================
+      const cursor = document.getElementById('customCursor');
+      let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+      let curX = mouseX, curY = mouseY;
+
+      window.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        const target = e.target;
+        if (target.closest('.slice-item')) {
+          cursor.className = 'custom-cursor is-slice';
+        } else if (target.closest('[data-cursor="hover"]') || target.closest('button') || target.closest('a')) {
+          cursor.className = 'custom-cursor is-hover';
+        } else {
+          cursor.className = 'custom-cursor';
+        }
+      });
+
+      function tickCursor() {
+        curX += (mouseX - curX) * 0.38;
+        curY += (mouseY - curY) * 0.38;
+        cursor.style.transform = `translate3d(${curX}px, ${curY}px, 0) translate(-50%, -50%)`;
+        requestAnimationFrame(tickCursor);
+      }
+      tickCursor();
+
+      // ================== 3. 60fps 光学声呐干涉背景 ==================
+      const canvas = document.getElementById('sonarCanvas');
+      const ctx = canvas.getContext('2d');
+      let cw = 0, ch = 0, sonarPhase = 0;
+
+      function resizeCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        cw = rect.width;
+        ch = rect.height;
+        canvas.width = cw * dpr;
+        canvas.height = ch * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      function renderSonar() {
+        ctx.clearRect(0, 0, cw, ch);
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const strokeRGB = isDark ? '255, 255, 255' : '10, 10, 10';
+        const cx = cw / 2;
+        const cy = ch / 2;
+        const maxR = Math.min(cw, ch) * 0.46;
+
+        sonarPhase += 0.0025;
+        for (let i = 0; i < 3; i++) {
+          const p = (sonarPhase + i / 3) % 1;
+          const r = p * maxR;
+          const alpha = (1 - p) * (isDark ? 0.08 : 0.06);
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${strokeRGB}, ${alpha})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        requestAnimationFrame(renderSonar);
+      }
+      renderSonar();
+
+      // ================== 4. 主题与基础工具 ==================
       const THEME_KEY = 'xv_drop_theme';
       const NAME_KEY = 'xv_drop_device_name';
       const ROOM_KEY = 'xv_drop_room_code';
 
       const root = document.documentElement;
-      const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
-      root.setAttribute('data-theme', savedTheme);
+      root.setAttribute('data-theme', localStorage.getItem(THEME_KEY) || 'light');
 
-      document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      document.getElementById('themeToggle').addEventListener('click', () => {
         const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         root.setAttribute('data-theme', next);
         localStorage.setItem(THEME_KEY, next);
       });
 
-      function showToast(msg) {
-        const bar = document.getElementById('toastBar');
-        bar.textContent = msg;
-        bar.classList.add('show');
-        clearTimeout(bar._timer);
-        bar._timer = setTimeout(() => bar.classList.remove('show'), 2600);
+      function whisper(msg) {
+        const t = document.getElementById('whisperToast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => t.classList.remove('show'), 2500);
       }
 
-      function formatBytes(bytes) {
-        if (!bytes || bytes === 0) return '0 B';
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      function formatBytes(b) {
+        if (!b) return '0 B';
+        const u = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(b) / Math.log(1024));
+        return (b / Math.pow(1024, i)).toFixed(i ? 1 : 0) + ' ' + u[i];
       }
 
-      // ================== 2. 本机标识与频道生成 ==================
-      const myPeerId = 'peer_' + Math.random().toString(36).substring(2, 10);
-
-      function detectDeviceType() {
-        const ua = navigator.userAgent;
-        if (/iPad|Tablet/i.test(ua)) return { icon: 'ri-tablet-line', label: 'TABLET' };
-        if (/iPhone|Android|Mobile/i.test(ua)) return { icon: 'ri-smartphone-line', label: 'MOBILE' };
-        return { icon: 'ri-macbook-line', label: 'DESKTOP' };
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
       }
 
-      function generateDefaultName() {
-        const ua = navigator.userAgent;
-        let os = 'Node';
-        if (/Mac/i.test(ua)) os = 'macOS';
-        else if (/iPhone/i.test(ua)) os = 'iPhone';
-        else if (/iPad/i.test(ua)) os = 'iPad';
-        else if (/Android/i.test(ua)) os = 'Android';
-        else if (/Win/i.test(ua)) os = 'Windows';
-        const code = Math.floor(100 + Math.random() * 900);
-        return `${os}-${code}`;
-      }
-
-      const myDeviceInfo = detectDeviceType();
-      let myName = localStorage.getItem(NAME_KEY) || generateDefaultName();
-      localStorage.setItem(NAME_KEY, myName);
-
-      // 默认 4 位频道码（方便局域网手机与电脑直接配对）
-      let currentRoom = localStorage.getItem(ROOM_KEY) || '0411';
-      localStorage.setItem(ROOM_KEY, currentRoom);
-
-      const selfNameBtn = document.getElementById('selfNameBtn');
-      const roomCodeDisplay = document.getElementById('roomCodeDisplay');
-      selfNameBtn.textContent = myName;
-      roomCodeDisplay.textContent = currentRoom;
-
-      // ================== 3. 节点状态管理与 UI 渲染 ==================
-      // peers: Map<peerId, { id, name, deviceType, lastSeen, pc, dc, progress }>
+      // ================== 5. 二阶临界阻尼手风琴切片物理引擎 ==================
       const peers = new Map();
+      let focusIndex = 0;
+      let trackPos = 0;
+      let trackVel = 0;
+      let lastPhysicsTime = performance.now();
+
+      const idleMonolith = document.getElementById('idleMonolith');
+      const kineticStrip = document.getElementById('kineticStrip');
+      const peerCountIndicator = document.getElementById('peerCountIndicator');
+      const hiddenFileInput = document.getElementById('hiddenFileInput');
       let activeTargetPeerId = null;
 
-      const emptyStateEl = document.getElementById('emptyState');
-      const peersGridEl = document.getElementById('peersGrid');
-      const centerCrosshair = document.getElementById('centerCrosshair');
-      const fileInput = document.getElementById('fileInput');
-
-      function renderPeers() {
+      function syncStripDOM() {
         const list = Array.from(peers.values());
+        peerCountIndicator.textContent = `${String(list.length).padStart(2, '0')} ONLINE`;
+
         if (list.length === 0) {
-          emptyStateEl.style.display = 'block';
-          centerCrosshair.style.display = 'block';
-          peersGridEl.innerHTML = '';
+          idleMonolith.style.display = 'flex';
+          kineticStrip.classList.remove('has-peers');
+          kineticStrip.innerHTML = '';
           return;
         }
 
-        emptyStateEl.style.display = 'none';
-        centerCrosshair.style.display = 'none';
+        idleMonolith.style.display = 'none';
+        kineticStrip.classList.add('has-peers');
+        if (focusIndex >= list.length) focusIndex = list.length - 1;
 
-        peersGridEl.innerHTML = list.map((peer, idx) => {
+        kineticStrip.innerHTML = list.map((peer, idx) => {
           const num = String(idx + 1).padStart(2, '0');
-          const isConnected = peer.dc && peer.dc.readyState === 'open';
           return `
-            <div class="peer-card" data-peer-id="${peer.id}">
-              <div>
-                <div class="peer-top">
-                  <span class="peer-index">NODE // ${num}</span>
-                  <i class="${peer.deviceType?.icon || 'ri-macbook-line'} peer-type-icon"></i>
-                </div>
-                <div class="peer-name">${escapeHtml(peer.name)}</div>
-                <div class="peer-meta">
-                  <span>${peer.deviceType?.label || 'DEVICE'}</span>
-                  <span>·</span>
-                  <span>${isConnected ? 'P2P DIRECT' : 'READY'}</span>
-                </div>
+            <div class="slice-item ${idx === focusIndex ? 'is-focused' : ''}" data-peer-id="${peer.id}" data-idx="${idx}">
+              <div class="slice-header">
+                <span>${num}</span>
+                <span class="slice-status-dot"></span>
               </div>
-              <div class="peer-actions">
-                <button class="action-btn" data-action="file" data-peer-id="${peer.id}">
-                  <i class="ri-folder-upload-line"></i> 发送文件
-                </button>
-                <button class="action-btn" data-action="text" data-peer-id="${peer.id}">
-                  <i class="ri-text"></i> 发送文字
-                </button>
+              <div class="slice-body">
+                <div class="slice-name">${escapeHtml(peer.name)}</div>
+                <div class="slice-hint">点击或拖拽投递文件</div>
               </div>
-              <div class="peer-progress-track">
-                <div class="peer-progress-bar" id="prog_${peer.id}" style="width: ${peer.progress || 0}%"></div>
+              <div class="slice-footer">
+                <span>${peer.kindLabel}</span>
+                <button class="slice-action-link" data-text-trigger="${peer.id}" data-cursor="hover">文字投递</button>
               </div>
+              <div class="slice-progress" id="prog_${peer.id}" style="width: ${peer.progress || 0}%"></div>
             </div>
           `;
         }).join('');
 
-        // 绑定卡片事件
-        peersGridEl.querySelectorAll('.peer-card').forEach(card => {
-          const pid = card.getAttribute('data-peer-id');
+        kineticStrip.querySelectorAll('.slice-item').forEach(el => {
+          const pid = el.getAttribute('data-peer-id');
+          const idx = parseInt(el.getAttribute('data-idx'), 10);
 
-          card.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-action]');
-            const action = btn ? btn.getAttribute('data-action') : 'file';
-            activeTargetPeerId = pid;
-            if (action === 'text') {
-              openTextModal(pid);
-            } else {
-              fileInput.value = '';
-              fileInput.click();
+          el.addEventListener('mouseenter', () => {
+            focusIndex = idx;
+            updateFocusClass();
+          });
+
+          el.addEventListener('click', (e) => {
+            if (e.target.closest('[data-text-trigger]')) {
+              e.stopPropagation();
+              openTextComposer(pid);
+              return;
             }
+            activeTargetPeerId = pid;
+            hiddenFileInput.value = '';
+            hiddenFileInput.click();
           });
 
-          card.addEventListener('dragover', (e) => {
+          el.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            card.classList.add('drag-over');
+            openTextComposer(pid);
           });
 
-          card.addEventListener('dragleave', () => {
-            card.classList.remove('drag-over');
+          el.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            focusIndex = idx;
+            updateFocusClass();
           });
 
-          card.addEventListener('drop', (e) => {
+          el.addEventListener('drop', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            card.classList.remove('drag-over');
-            document.getElementById('stageArea').classList.remove('drag-active');
-            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            document.getElementById('centerStage').classList.remove('drag-over');
+            if (e.dataTransfer.files?.length) {
               sendFilesToPeer(pid, Array.from(e.dataTransfer.files));
             }
           });
         });
       }
 
-      function updatePeerProgress(peerId, percent) {
-        const peer = peers.get(peerId);
-        if (peer) peer.progress = percent;
-        const bar = document.getElementById('prog_' + peerId);
-        if (bar) bar.style.width = percent + '%';
+      function updateFocusClass() {
+        const items = kineticStrip.querySelectorAll('.slice-item');
+        items.forEach((item, i) => {
+          item.classList.toggle('is-focused', i === focusIndex);
+        });
       }
 
-      function escapeHtml(str) {
-        return String(str).replace(/[&<>"']/g, s => ({
-          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[s]));
+      // 临界阻尼 ODE (zeta = 1.0, omega = 6.2) 驱动连续切片权重
+      function tickStripPhysics(now) {
+        const dt = Math.min((now - lastPhysicsTime) / 1000, 0.064);
+        lastPhysicsTime = now;
+
+        const omega = 6.2;
+        const d0 = trackPos - focusIndex;
+        const v0 = trackVel;
+        const expTerm = Math.exp(-omega * dt);
+        const nextD = (d0 + (v0 + omega * d0) * dt) * expTerm;
+        trackVel = (v0 - omega * (v0 + omega * d0) * dt) * expTerm;
+        trackPos = focusIndex + nextD;
+
+        const slices = kineticStrip.querySelectorAll('.slice-item');
+        if (slices.length > 1) {
+          slices.forEach((slice, i) => {
+            const dist = Math.abs(i - trackPos);
+            const peak = dist < 1 ? 0.5 * (1 + Math.cos(Math.PI * dist)) : 0;
+            const weight = 1 + peak * 2.4;
+            slice.style.flexGrow = weight.toFixed(4);
+          });
+        }
+        requestAnimationFrame(tickStripPhysics);
+      }
+      requestAnimationFrame(tickStripPhysics);
+
+      // ================== 6. 本机身份与双通道零配置信令 ==================
+      const myId = 'xv_' + Math.random().toString(36).substring(2, 9);
+      const ua = navigator.userAgent;
+      const myKind = /iPad|Tablet/i.test(ua) ? 'TABLET' : (/iPhone|Android|Mobile/i.test(ua) ? 'MOBILE' : 'DESKTOP');
+
+      function defaultDeviceName() {
+        let base = 'Node';
+        if (/Mac/i.test(ua)) base = 'Mac';
+        else if (/iPhone/i.test(ua)) base = 'iPhone';
+        else if (/iPad/i.test(ua)) base = 'iPad';
+        else if (/Android/i.test(ua)) base = 'Android';
+        else if (/Win/i.test(ua)) base = 'PC';
+        return `${base} ${Math.floor(10 + Math.random() * 89)}`;
       }
 
-      // ================== 4. 双重信令层 (BroadcastChannel + MQTT WebSocket) ==================
+      let myName = localStorage.getItem(NAME_KEY) || defaultDeviceName();
+      localStorage.setItem(NAME_KEY, myName);
+
+      let roomCode = localStorage.getItem(ROOM_KEY) || '0411';
+      localStorage.setItem(ROOM_KEY, roomCode);
+
+      const selfIdentityBtn = document.getElementById('selfIdentityBtn');
+      const roomCodeText = document.getElementById('roomCodeText');
+      const idleSubText = document.getElementById('idleSubText');
+      const signalBeacon = document.getElementById('signalBeacon');
+
+      function refreshHeaderLabels() {
+        selfIdentityBtn.textContent = myName.toUpperCase();
+        roomCodeText.textContent = roomCode;
+        idleSubText.textContent = `CH // ${roomCode}`;
+      }
+      refreshHeaderLabels();
+
       let bc = null;
       let mqttClient = null;
-      const signalDot = document.getElementById('signalDot');
 
-      function sendSignal(payload) {
-        const message = JSON.stringify({
-          ...payload,
-          from: myPeerId,
+      function emitSignal(packet) {
+        const raw = JSON.stringify({
+          ...packet,
+          from: myId,
           fromName: myName,
-          deviceType: myDeviceInfo,
-          room: currentRoom,
+          kindLabel: myKind,
+          room: roomCode,
           ts: Date.now()
         });
-        if (bc) {
-          try { bc.postMessage(message); } catch (e) {}
-        }
+        if (bc) { try { bc.postMessage(raw); } catch (e) {} }
         if (mqttClient && mqttClient.connected) {
-          mqttClient.publish(`xiangvisuals/drop/${currentRoom}`, message);
+          mqttClient.publish(`xiangvisuals/drop/${roomCode}`, raw);
         }
       }
 
-      function initSignaling() {
-        // 清理旧连接
+      function connectSignaling() {
         peers.forEach(p => { if (p.pc) p.pc.close(); });
         peers.clear();
-        renderPeers();
+        syncStripDOM();
 
         if (bc) bc.close();
-        bc = new BroadcastChannel(`xv_drop_${currentRoom}`);
-        bc.onmessage = (ev) => handleSignalMessage(ev.data);
+        bc = new BroadcastChannel(`xv_drop_${roomCode}`);
+        bc.onmessage = (e) => onSignalReceived(e.data);
 
-        if (mqttClient) {
-          try { mqttClient.end(true); } catch (e) {}
-        }
+        if (mqttClient) { try { mqttClient.end(true); } catch (e) {} }
+        signalBeacon.classList.remove('active');
 
-        signalDot.classList.remove('online');
         mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
-          clientId: 'xv_' + myPeerId + '_' + Math.random().toString(16).slice(2, 6),
+          clientId: myId + '_' + Math.random().toString(16).slice(2, 6),
           clean: true,
           connectTimeout: 5000,
           reconnectPeriod: 3000
         });
 
         mqttClient.on('connect', () => {
-          signalDot.classList.add('online');
-          mqttClient.subscribe(`xiangvisuals/drop/${currentRoom}`, () => {
-            announcePresence();
+          signalBeacon.classList.add('active');
+          mqttClient.subscribe(`xiangvisuals/drop/${roomCode}`, () => {
+            emitSignal({ type: 'hello' });
           });
         });
 
-        mqttClient.on('message', (topic, messageBuffer) => {
-          handleSignalMessage(messageBuffer.toString());
-        });
+        mqttClient.on('message', (_, buf) => onSignalReceived(buf.toString()));
+        mqttClient.on('offline', () => signalBeacon.classList.remove('active'));
 
-        mqttClient.on('offline', () => {
-          signalDot.classList.remove('online');
-        });
-
-        // 同机立即可见
-        announcePresence();
+        emitSignal({ type: 'hello' });
       }
 
-      function announcePresence() {
-        sendSignal({ type: 'hello' });
-      }
-
-      // 定时心跳与离线清理
       setInterval(() => {
-        announcePresence();
+        emitSignal({ type: 'hello' });
         const now = Date.now();
-        let changed = false;
-        peers.forEach((peer, id) => {
-          if (now - peer.lastSeen > 16000) {
-            if (peer.pc) peer.pc.close();
-            peers.delete(id);
-            changed = true;
+        let mutated = false;
+        peers.forEach((p, k) => {
+          if (now - p.lastSeen > 15000) {
+            if (p.pc) p.pc.close();
+            peers.delete(k);
+            mutated = true;
           }
         });
-        if (changed) renderPeers();
-      }, 5000);
+        if (mutated) syncStripDOM();
+      }, 4800);
 
-      window.addEventListener('beforeunload', () => {
-        sendSignal({ type: 'bye' });
-      });
+      window.addEventListener('beforeunload', () => emitSignal({ type: 'bye' }));
 
-      // ================== 5. WebRTC P2P 核心与分块传输 ==================
-      const rtcConfig = {
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-      };
+      // ================== 7. WebRTC 点对点引擎 ==================
+      const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-      async function handleSignalMessage(raw) {
+      async function onSignalReceived(raw) {
         let msg;
         try { msg = JSON.parse(raw); } catch (e) { return; }
-        if (!msg || msg.from === myPeerId || msg.room !== currentRoom) return;
-
-        const remoteId = msg.from;
+        if (!msg || msg.from === myId || msg.room !== roomCode) return;
 
         if (msg.type === 'bye') {
-          const p = peers.get(remoteId);
-          if (p && p.pc) p.pc.close();
-          peers.delete(remoteId);
-          renderPeers();
+          const old = peers.get(msg.from);
+          if (old?.pc) old.pc.close();
+          peers.delete(msg.from);
+          syncStripDOM();
           return;
         }
 
-        let peer = peers.get(remoteId);
+        let peer = peers.get(msg.from);
         const isNew = !peer;
         if (!peer) {
           peer = {
-            id: remoteId,
+            id: msg.from,
             name: msg.fromName || 'Node',
-            deviceType: msg.deviceType || { icon: 'ri-macbook-line', label: 'DEVICE' },
+            kindLabel: msg.kindLabel || 'DEVICE',
             lastSeen: Date.now(),
             pc: null,
             dc: null,
             progress: 0
           };
-          peers.set(remoteId, peer);
+          peers.set(msg.from, peer);
         } else {
           peer.lastSeen = Date.now();
           if (msg.fromName && peer.name !== msg.fromName) {
             peer.name = msg.fromName;
-            renderPeers();
+            syncStripDOM();
           }
         }
 
-        if (isNew) renderPeers();
+        if (isNew) syncStripDOM();
 
         if (msg.type === 'hello') {
-          sendSignal({ type: 'hello_ack', to: remoteId });
+          emitSignal({ type: 'hello_ack', to: msg.from });
           return;
         }
-
-        if (msg.to && msg.to !== myPeerId) return;
+        if (msg.to && msg.to !== myId) return;
 
         if (msg.type === 'offer') {
-          const pc = createPeerConnection(peer, false);
+          const pc = buildPeerConnection(peer, false);
           await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
-          const answer = await pc.createAnswer();
-          await pc.setLocalDescription(answer);
-          sendSignal({ type: 'answer', to: remoteId, sdp: pc.localDescription });
+          const ans = await pc.createAnswer();
+          await pc.setLocalDescription(ans);
+          emitSignal({ type: 'answer', to: peer.id, sdp: pc.localDescription });
         } else if (msg.type === 'answer' && peer.pc) {
           await peer.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
         } else if (msg.type === 'candidate' && peer.pc && msg.candidate) {
@@ -1053,130 +1161,101 @@
         }
       }
 
-      function createPeerConnection(peer, isInitiator) {
+      function buildPeerConnection(peer, initiator) {
         if (peer.pc) peer.pc.close();
         const pc = new RTCPeerConnection(rtcConfig);
         peer.pc = pc;
 
         pc.onicecandidate = (e) => {
-          if (e.candidate) {
-            sendSignal({ type: 'candidate', to: peer.id, candidate: e.candidate });
-          }
+          if (e.candidate) emitSignal({ type: 'candidate', to: peer.id, candidate: e.candidate });
         };
 
-        if (isInitiator) {
-          const dc = pc.createDataChannel('xv_drop_channel');
-          setupDataChannel(peer, dc);
+        if (initiator) {
+          bindDataChannel(peer, pc.createDataChannel('xv_drop'));
         } else {
-          pc.ondatachannel = (e) => {
-            setupDataChannel(peer, e.channel);
-          };
+          pc.ondatachannel = (e) => bindDataChannel(peer, e.channel);
         }
-
         return pc;
       }
 
-      function ensureDataChannel(peer) {
+      function openChannel(peer) {
         return new Promise(async (resolve, reject) => {
-          if (peer.dc && peer.dc.readyState === 'open') {
-            return resolve(peer.dc);
-          }
-          const pc = createPeerConnection(peer, true);
-          const timer = setTimeout(() => reject(new Error('连接超时')), 10000);
-          peer._onChannelOpen = (dc) => {
-            clearTimeout(timer);
-            resolve(dc);
-          };
+          if (peer.dc && peer.dc.readyState === 'open') return resolve(peer.dc);
+          const pc = buildPeerConnection(peer, true);
+          const t = setTimeout(() => reject(new Error('TIMEOUT')), 10000);
+          peer._readyCb = (dc) => { clearTimeout(t); resolve(dc); };
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
-          sendSignal({ type: 'offer', to: peer.id, sdp: pc.localDescription });
+          emitSignal({ type: 'offer', to: peer.id, sdp: pc.localDescription });
         });
       }
 
-      function setupDataChannel(peer, dc) {
+      function bindDataChannel(peer, dc) {
         peer.dc = dc;
         dc.binaryType = 'arraybuffer';
-
-        let incomingMeta = null;
-        let receivedBuffers = [];
-        let receivedBytes = 0;
+        let meta = null, chunks = [], received = 0;
 
         dc.onopen = () => {
-          renderPeers();
-          if (peer._onChannelOpen) {
-            peer._onChannelOpen(dc);
-            peer._onChannelOpen = null;
-          }
+          if (peer._readyCb) { peer._readyCb(dc); peer._readyCb = null; }
         };
-
-        dc.onclose = () => renderPeers();
 
         dc.onmessage = (e) => {
           if (typeof e.data === 'string') {
-            const ctrl = JSON.parse(e.data);
-            if (ctrl.kind === 'text') {
-              presentIncomingText(peer.name, ctrl.text);
-            } else if (ctrl.kind === 'file-start') {
-              incomingMeta = ctrl;
-              receivedBuffers = [];
-              receivedBytes = 0;
-              updatePeerProgress(peer.id, 1);
-            } else if (ctrl.kind === 'file-end' && incomingMeta) {
-              const blob = new Blob(receivedBuffers, { type: incomingMeta.mime || 'application/octet-stream' });
-              updatePeerProgress(peer.id, 0);
-              presentIncomingFile(peer.name, incomingMeta.name, incomingMeta.size, incomingMeta.mime, blob);
-              incomingMeta = null;
-              receivedBuffers = [];
+            const p = JSON.parse(e.data);
+            if (p.kind === 'text') {
+              showIncomingText(peer.name, p.text);
+            } else if (p.kind === 'file-start') {
+              meta = p; chunks = []; received = 0;
+              setSliceProgress(peer.id, 2);
+            } else if (p.kind === 'file-end' && meta) {
+              const blob = new Blob(chunks, { type: meta.mime || 'application/octet-stream' });
+              setSliceProgress(peer.id, 0);
+              showIncomingFile(peer.name, meta.name, meta.size, meta.mime, blob);
+              meta = null; chunks = [];
             }
-          } else if (e.data instanceof ArrayBuffer && incomingMeta) {
-            receivedBuffers.push(e.data);
-            receivedBytes += e.data.byteLength;
-            const pct = Math.min(100, Math.round((receivedBytes / (incomingMeta.size || 1)) * 100));
-            updatePeerProgress(peer.id, pct);
+          } else if (e.data instanceof ArrayBuffer && meta) {
+            chunks.push(e.data);
+            received += e.data.byteLength;
+            setSliceProgress(peer.id, Math.min(100, Math.round((received / (meta.size || 1)) * 100)));
           }
         };
       }
 
-      // 发送文件（16KB 分块流控）
+      function setSliceProgress(peerId, pct) {
+        const peer = peers.get(peerId);
+        if (peer) peer.progress = pct;
+        const bar = document.getElementById('prog_' + peerId);
+        if (bar) bar.style.width = pct + '%';
+      }
+
       async function sendFilesToPeer(peerId, files) {
         const peer = peers.get(peerId);
         if (!peer) return;
-
         try {
-          showToast(`正在连接 ${peer.name}...`);
-          const dc = await ensureDataChannel(peer);
-          const CHUNK_SIZE = 16384;
-
+          whisper(`CONNECTING // ${peer.name.toUpperCase()}`);
+          const dc = await openChannel(peer);
+          const CHUNK = 16384;
           for (const file of files) {
-            dc.send(JSON.stringify({
-              kind: 'file-start',
-              name: file.name,
-              size: file.size,
-              mime: file.type
-            }));
-
-            const buffer = await file.arrayBuffer();
-            let offset = 0;
-
-            while (offset < buffer.byteLength) {
+            dc.send(JSON.stringify({ kind: 'file-start', name: file.name, size: file.size, mime: file.type }));
+            const buf = await file.arrayBuffer();
+            let pos = 0;
+            while (pos < buf.byteLength) {
               if (dc.bufferedAmount > 262144) {
-                await new Promise(r => setTimeout(r, 15));
+                await new Promise(r => setTimeout(r, 14));
                 continue;
               }
-              const slice = buffer.slice(offset, offset + CHUNK_SIZE);
-              dc.send(slice);
-              offset += slice.byteLength;
-              const pct = Math.round((offset / buffer.byteLength) * 100);
-              updatePeerProgress(peerId, pct);
+              const part = buf.slice(pos, pos + CHUNK);
+              dc.send(part);
+              pos += part.byteLength;
+              setSliceProgress(peerId, Math.round((pos / buf.byteLength) * 100));
             }
-
             dc.send(JSON.stringify({ kind: 'file-end' }));
-            updatePeerProgress(peerId, 0);
-            showToast(`已投递 // ${file.name}`);
+            setSliceProgress(peerId, 0);
+            whisper(`DELIVERED // ${file.name}`);
           }
-        } catch (err) {
-          updatePeerProgress(peerId, 0);
-          showToast('连接未完成，请重试');
+        } catch (e) {
+          setSliceProgress(peerId, 0);
+          whisper('TRANSMISSION INTERRUPTED');
         }
       }
 
@@ -1184,207 +1263,184 @@
         const peer = peers.get(peerId);
         if (!peer || !text.trim()) return;
         try {
-          const dc = await ensureDataChannel(peer);
+          const dc = await openChannel(peer);
           dc.send(JSON.stringify({ kind: 'text', text: text.trim() }));
-          showToast(`文本已投递至 ${peer.name}`);
-        } catch (err) {
-          showToast('文本发送失败');
+          whisper(`SENT // ${peer.name.toUpperCase()}`);
+        } catch (e) {
+          whisper('FAILED TO SEND');
         }
       }
 
-      // ================== 6. 接收与输入模态框交互 ==================
-      const receiveModal = document.getElementById('receiveModal');
-      const recEyebrow = document.getElementById('recEyebrow');
-      const recTitle = document.getElementById('recTitle');
-      const recPreviewImg = document.getElementById('recPreviewImg');
-      const recMetaList = document.getElementById('recMetaList');
-      const recAcceptBtn = document.getElementById('recAcceptBtn');
-      const recDeclineBtn = document.getElementById('recDeclineBtn');
+      // ================== 8. 弹窗交互控制 ==================
+      const receiveSheet = document.getElementById('receiveSheet');
+      const recIndex = document.getElementById('recIndex');
+      const recHeading = document.getElementById('recHeading');
+      const recImg = document.getElementById('recImg');
+      const recSpecs = document.getElementById('recSpecs');
+      const recSaveBtn = document.getElementById('recSaveBtn');
+      const recDismissBtn = document.getElementById('recDismissBtn');
+      let activeBlobUrl = null;
 
-      let currentBlobUrl = null;
-
-      function closeReceiveModal() {
-        receiveModal.classList.remove('active');
-        if (currentBlobUrl) {
-          URL.revokeObjectURL(currentBlobUrl);
-          currentBlobUrl = null;
-        }
+      function closeReceive() {
+        receiveSheet.classList.remove('active');
+        if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); activeBlobUrl = null; }
       }
+      recDismissBtn.addEventListener('click', closeReceive);
 
-      recDeclineBtn.addEventListener('click', closeReceiveModal);
+      function showIncomingFile(fromName, name, size, mime, blob) {
+        if (activeBlobUrl) URL.revokeObjectURL(activeBlobUrl);
+        activeBlobUrl = URL.createObjectURL(blob);
 
-      function presentIncomingFile(senderName, fileName, fileSize, mime, blob) {
-        if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
-        currentBlobUrl = URL.createObjectURL(blob);
-
-        recEyebrow.textContent = `INCOMING FILE // FROM ${senderName.toUpperCase()}`;
-        recTitle.textContent = '收到文件投递';
+        recIndex.textContent = `FROM // ${fromName.toUpperCase()}`;
+        recHeading.textContent = '收到文件';
 
         if (mime && mime.startsWith('image/')) {
-          recPreviewImg.src = currentBlobUrl;
-          recPreviewImg.style.display = 'block';
+          recImg.src = activeBlobUrl;
+          recImg.style.display = 'block';
         } else {
-          recPreviewImg.style.display = 'none';
+          recImg.style.display = 'none';
         }
 
-        recMetaList.innerHTML = `
-          <div class="meta-row"><span>FILENAME</span><span>${escapeHtml(fileName)}</span></div>
-          <div class="meta-row"><span>SIZE</span><span>${formatBytes(fileSize)}</span></div>
-          <div class="meta-row"><span>TYPE</span><span>${escapeHtml(mime || 'BINARY')}</span></div>
+        recSpecs.innerHTML = `
+          <div class="spec-line"><span>FILE</span><span>${escapeHtml(name)}</span></div>
+          <div class="spec-line"><span>SIZE</span><span>${formatBytes(size)}</span></div>
         `;
 
-        recAcceptBtn.textContent = '下载保存';
-        recAcceptBtn.onclick = () => {
+        recSaveBtn.textContent = '保存';
+        recSaveBtn.onclick = () => {
           const a = document.createElement('a');
-          a.href = currentBlobUrl;
-          a.download = fileName;
+          a.href = activeBlobUrl;
+          a.download = name;
           document.body.appendChild(a);
           a.click();
           a.remove();
-          closeReceiveModal();
+          closeReceive();
         };
-
-        receiveModal.classList.add('active');
+        receiveSheet.classList.add('active');
       }
 
-      function presentIncomingText(senderName, text) {
-        recEyebrow.textContent = `INCOMING MESSAGE // FROM ${senderName.toUpperCase()}`;
-        recTitle.textContent = '收到文本内容';
-        recPreviewImg.style.display = 'none';
-
-        recMetaList.innerHTML = `
-          <div class="meta-row" style="flex-direction: column; gap: 8px;">
-            <span>CONTENT</span>
-            <span style="max-width: 100%; text-align: left; user-select: text; font-family: var(--font-sans); line-height: 1.6;">${escapeHtml(text)}</span>
+      function showIncomingText(fromName, text) {
+        recIndex.textContent = `FROM // ${fromName.toUpperCase()}`;
+        recHeading.textContent = '收到文本';
+        recImg.style.display = 'none';
+        recSpecs.innerHTML = `
+          <div class="spec-line" style="flex-direction:column; gap:8px;">
+            <span style="max-width:100%; text-align:left; user-select:text; font-family:var(--font-serif); font-size:16px; line-height:1.6;">${escapeHtml(text)}</span>
           </div>
         `;
-
-        recAcceptBtn.textContent = '复制内容';
-        recAcceptBtn.onclick = () => {
+        recSaveBtn.textContent = '复制';
+        recSaveBtn.onclick = () => {
           navigator.clipboard.writeText(text).then(() => {
-            showToast('已复制到剪贴板');
-            closeReceiveModal();
+            whisper('COPIED');
+            closeReceive();
           });
         };
-
-        receiveModal.classList.add('active');
+        receiveSheet.classList.add('active');
       }
 
-      // 通用输入模态框（发文本 / 改名 / 改频道）
-      const inputModal = document.getElementById('inputModal');
-      const inpEyebrow = document.getElementById('inpEyebrow');
-      const inpTitle = document.getElementById('inpTitle');
-      const inpTextField = document.getElementById('inpTextField');
-      const inpAreaField = document.getElementById('inpAreaField');
-      const inpCancelBtn = document.getElementById('inpCancelBtn');
-      const inpConfirmBtn = document.getElementById('inpConfirmBtn');
+      // 通用输入面板
+      const promptSheet = document.getElementById('promptSheet');
+      const prmIndex = document.getElementById('prmIndex');
+      const prmHeading = document.getElementById('prmHeading');
+      const prmInput = document.getElementById('prmInput');
+      const prmTextarea = document.getElementById('prmTextarea');
+      const prmCancelBtn = document.getElementById('prmCancelBtn');
+      const prmOkBtn = document.getElementById('prmOkBtn');
 
-      function closeInputModal() {
-        inputModal.classList.remove('active');
-      }
-      inpCancelBtn.addEventListener('click', closeInputModal);
+      prmCancelBtn.addEventListener('click', () => promptSheet.classList.remove('active'));
 
-      function openTextModal(peerId) {
+      function openTextComposer(peerId) {
         const peer = peers.get(peerId);
         if (!peer) return;
-        inpEyebrow.textContent = `DIRECT TEXT // TO ${peer.name.toUpperCase()}`;
-        inpTitle.textContent = '发送文本或链接';
-        inpTextField.style.display = 'none';
-        inpAreaField.style.display = 'block';
-        inpAreaField.value = '';
-        inputModal.classList.add('active');
-        setTimeout(() => inpAreaField.focus(), 80);
+        prmIndex.textContent = `TO // ${peer.name.toUpperCase()}`;
+        prmHeading.textContent = '投递文字';
+        prmInput.style.display = 'none';
+        prmTextarea.style.display = 'block';
+        prmTextarea.value = '';
+        promptSheet.classList.add('active');
+        setTimeout(() => prmTextarea.focus(), 60);
 
-        inpConfirmBtn.onclick = () => {
-          const val = inpAreaField.value;
-          closeInputModal();
-          sendTextToPeer(peerId, val);
+        prmOkBtn.onclick = () => {
+          const v = prmTextarea.value;
+          promptSheet.classList.remove('active');
+          sendTextToPeer(peerId, v);
         };
       }
 
-      // 修改本机名称
-      selfNameBtn.addEventListener('click', () => {
-        inpEyebrow.textContent = 'IDENTITY // 本机标识';
-        inpTitle.textContent = '修改设备显示名称';
-        inpAreaField.style.display = 'none';
-        inpTextField.style.display = 'block';
-        inpTextField.value = myName;
-        inputModal.classList.add('active');
-        setTimeout(() => inpTextField.focus(), 80);
+      selfIdentityBtn.addEventListener('click', () => {
+        prmIndex.textContent = 'IDENTITY';
+        prmHeading.textContent = '本机名称';
+        prmTextarea.style.display = 'none';
+        prmInput.style.display = 'block';
+        prmInput.value = myName;
+        promptSheet.classList.add('active');
+        setTimeout(() => prmInput.focus(), 60);
 
-        inpConfirmBtn.onclick = () => {
-          const val = inpTextField.value.trim();
-          if (val) {
-            myName = val.slice(0, 24);
+        prmOkBtn.onclick = () => {
+          const v = prmInput.value.trim();
+          if (v) {
+            myName = v.slice(0, 20);
             localStorage.setItem(NAME_KEY, myName);
-            selfNameBtn.textContent = myName;
-            announcePresence();
-            showToast('本机标识已更新');
+            refreshHeaderLabels();
+            emitSignal({ type: 'hello' });
           }
-          closeInputModal();
+          promptSheet.classList.remove('active');
         };
       });
 
-      // 修改配对频道码
-      document.getElementById('roomBtn').addEventListener('click', () => {
-        inpEyebrow.textContent = 'CHANNEL // 配对频道';
-        inpTitle.textContent = '设置局域网配对频道码';
-        inpAreaField.style.display = 'none';
-        inpTextField.style.display = 'block';
-        inpTextField.value = currentRoom;
-        inputModal.classList.add('active');
-        setTimeout(() => inpTextField.focus(), 80);
+      document.getElementById('roomTrigger').addEventListener('click', () => {
+        prmIndex.textContent = 'CHANNEL';
+        prmHeading.textContent = '配对频道';
+        prmTextarea.style.display = 'none';
+        prmInput.style.display = 'block';
+        prmInput.value = roomCode;
+        promptSheet.classList.add('active');
+        setTimeout(() => prmInput.focus(), 60);
 
-        inpConfirmBtn.onclick = () => {
-          const val = inpTextField.value.trim().toUpperCase();
-          if (val) {
-            currentRoom = val.slice(0, 12);
-            localStorage.setItem(ROOM_KEY, currentRoom);
-            roomCodeDisplay.textContent = currentRoom;
-            initSignaling();
-            showToast(`已切换至频道 CH // ${currentRoom}`);
+        prmOkBtn.onclick = () => {
+          const v = prmInput.value.trim().toUpperCase();
+          if (v) {
+            roomCode = v.slice(0, 10);
+            localStorage.setItem(ROOM_KEY, roomCode);
+            refreshHeaderLabels();
+            connectSignaling();
           }
-          closeInputModal();
+          promptSheet.classList.remove('active');
         };
       });
 
-      // ================== 7. 全局文件选择、拖拽与粘贴支持 ==================
-      fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0 && activeTargetPeerId) {
+      // 全局拖拽与快捷键粘贴
+      hiddenFileInput.addEventListener('change', (e) => {
+        if (e.target.files.length && activeTargetPeerId) {
           sendFilesToPeer(activeTargetPeerId, Array.from(e.target.files));
         }
       });
 
-      const stageArea = document.getElementById('stageArea');
-      stageArea.addEventListener('dragover', (e) => {
+      const centerStage = document.getElementById('centerStage');
+      centerStage.addEventListener('dragover', (e) => {
         e.preventDefault();
-        stageArea.classList.add('drag-active');
+        centerStage.classList.add('drag-over');
       });
-      stageArea.addEventListener('dragleave', (e) => {
-        if (e.target === stageArea) stageArea.classList.remove('drag-active');
+      centerStage.addEventListener('dragleave', (e) => {
+        if (e.target === centerStage) centerStage.classList.remove('drag-over');
       });
-      stageArea.addEventListener('drop', (e) => {
+      centerStage.addEventListener('drop', (e) => {
         e.preventDefault();
-        stageArea.classList.remove('drag-active');
+        centerStage.classList.remove('drag-over');
         const list = Array.from(peers.values());
-        if (list.length === 1 && e.dataTransfer.files.length > 0) {
-          sendFilesToPeer(list[0].id, Array.from(e.dataTransfer.files));
-        } else if (list.length > 1) {
-          showToast('请将文件拖拽至具体的设备卡片上');
-        } else {
-          showToast('当前暂无在线设备');
+        if (list.length && e.dataTransfer.files.length) {
+          const target = list[focusIndex] || list[0];
+          sendFilesToPeer(target.id, Array.from(e.dataTransfer.files));
         }
       });
 
       window.addEventListener('paste', (e) => {
-        if (inputModal.classList.contains('active')) return;
+        if (promptSheet.classList.contains('active')) return;
         const list = Array.from(peers.values());
-        if (list.length === 0) return;
-        const targetId = activeTargetPeerId && peers.has(activeTargetPeerId) ? activeTargetPeerId : list[0].id;
-
+        if (!list.length) return;
+        const target = list[focusIndex] || list[0];
         const items = e.clipboardData?.items;
         if (!items) return;
-
         const files = [];
         for (let i = 0; i < items.length; i++) {
           if (items[i].kind === 'file') {
@@ -1392,19 +1448,15 @@
             if (f) files.push(f);
           }
         }
-        if (files.length > 0) {
-          sendFilesToPeer(targetId, files);
-          return;
-        }
-
-        const text = e.clipboardData.getData('text');
-        if (text) {
-          sendTextToPeer(targetId, text);
+        if (files.length) {
+          sendFilesToPeer(target.id, files);
+        } else {
+          const txt = e.clipboardData.getData('text');
+          if (txt) sendTextToPeer(target.id, txt);
         }
       });
 
-      // 启动真实信令发现
-      initSignaling();
+      connectSignaling();
     })();
   </script>
 </body>
