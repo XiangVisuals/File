@@ -2,38 +2,42 @@
 <html lang="zh-CN" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>XIANG VISUALS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>XIANG VISUALS — DROP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=JetBrains+Mono:wght@300;400&family=Noto+Serif+SC:wght@200;300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@300;400;500&family=Noto+Serif+SC:wght@200;300;400;500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
   <style>
     :root {
       --bg: #FFFFFF;
-      --bg-subtle: #F7F7F7;
+      --bg-subtle: #F7F7F8;
+      --bg-elevated: #FFFFFF;
       --fg: #0A0A0A;
-      --fg-secondary: #767676;
-      --fg-muted: #BCBCBC;
-      --hairline: #E6E6E6;
+      --fg-secondary: #68686E;
+      --fg-muted: #AEAEB6;
+      --hairline: #E4E4E7;
       --vermilion: #C82829;
 
       --font-brand: 'Cinzel', serif;
       --font-serif: 'Cormorant Garamond', 'Noto Serif SC', serif;
       --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
 
       --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
       --ease-silky: cubic-bezier(0.22, 1, 0.36, 1);
-      --ease-curtain: cubic-bezier(0.76, 0, 0.24, 1);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     html[data-theme="dark"] {
-      --bg: #080808;
-      --bg-subtle: #101010;
-      --fg: #F2F2F2;
-      --fg-secondary: #828282;
-      --fg-muted: #383838;
-      --hairline: #1E1E1E;
-      --vermilion: #D93234;
+      --bg: #08080A;
+      --bg-subtle: #101014;
+      --bg-elevated: #121216;
+      --fg: #F4F4F6;
+      --fg-secondary: #8A8A92;
+      --fg-muted: #42424A;
+      --hairline: #222228;
+      --vermilion: #D9383A;
     }
 
     * {
@@ -43,17 +47,18 @@
       border-radius: 0 !important;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
 
     html, body {
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100dvh;
       overflow: hidden;
       background-color: var(--bg);
       color: var(--fg);
       font-family: var(--font-serif);
-      transition: background-color 0.7s var(--ease-silky), color 0.7s var(--ease-silky);
+      transition: background-color 0.55s var(--ease-silky), color 0.55s var(--ease-silky);
     }
 
     @media (pointer: fine) {
@@ -66,100 +71,11 @@
       inset: 0;
       pointer-events: none;
       z-index: 90;
-      opacity: 0.032;
+      opacity: 0.026;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
 
-    /* 克制的几何开场：只动画 transform / opacity，避免移动端大面积重绘 */
-    .kinetic-loader {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      color: var(--fg);
-      z-index: 300;
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      transition: opacity .42s var(--ease-silky), visibility 0s linear;
-    }
-    .kinetic-loader.done {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: opacity .42s var(--ease-silky), visibility 0s linear .42s;
-    }
-    .loader-core {
-      width: min(240px, 62vw);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-    }
-    .loader-glyph {
-      height: 46px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
-    .loader-glyph span {
-      display: block;
-      width: 2px;
-      height: var(--bar-height, 28px);
-      background: var(--fg);
-      transform: scaleY(.12);
-      transform-origin: center;
-      opacity: .35;
-      animation: loaderBar .78s var(--ease-silky) infinite alternate;
-      animation-delay: var(--bar-delay, 0s);
-    }
-    .loader-glyph span:nth-child(1) { --bar-height: 17px; --bar-delay: -.24s; }
-    .loader-glyph span:nth-child(2) { --bar-height: 31px; --bar-delay: -.12s; }
-    .loader-glyph span:nth-child(3) { --bar-height: 42px; --bar-delay: 0s; }
-    .loader-glyph span:nth-child(4) { --bar-height: 31px; --bar-delay: -.12s; }
-    .loader-glyph span:nth-child(5) { --bar-height: 17px; --bar-delay: -.24s; }
-    .loader-wordmark {
-      font-family: var(--font-brand);
-      font-size: 10px;
-      letter-spacing: 3px;
-      white-space: nowrap;
-    }
-    .loader-wordmark i {
-      font-style: normal;
-      color: var(--fg-secondary);
-    }
-    .loader-track {
-      width: 100%;
-      height: 1px;
-      background: var(--hairline);
-      overflow: hidden;
-    }
-    .loader-track span {
-      display: block;
-      height: 100%;
-      width: 34%;
-      background: var(--fg);
-      animation: loaderTrack .9s var(--ease-silky) infinite;
-    }
-    .loader-caption {
-      font-family: var(--font-mono);
-      font-size: 8px;
-      letter-spacing: 2px;
-      color: var(--fg-secondary);
-    }
-    @keyframes loaderBar {
-      from { transform: scaleY(.12); opacity: .3; }
-      to { transform: scaleY(1); opacity: 1; }
-    }
-    @keyframes loaderTrack {
-      from { transform: translateX(-120%); }
-      to { transform: translateX(320%); }
-    }
-
-        /* 自定义磁吸反色光标 */
+    /* 桌面端磁吸反色光标 */
     .custom-cursor {
       position: fixed;
       top: 0;
@@ -171,84 +87,120 @@
       pointer-events: none;
       z-index: 999;
       transform: translate(-50%, -50%);
-      transition: width 0.35s var(--ease-out), height 0.35s var(--ease-out), background-color 0.35s var(--ease-out), border 0.35s var(--ease-out);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-mono);
-      font-size: 9px;
-      letter-spacing: 2px;
-      color: #000000;
-      overflow: hidden;
+      transition: width 0.3s var(--ease-out), height 0.3s var(--ease-out);
     }
-    .custom-cursor.is-hover {
-      width: 44px;
-      height: 44px;
-    }
-    .custom-cursor.is-slice {
-      width: 68px;
-      height: 68px;
-    }
+    .custom-cursor.is-hover { width: 38px; height: 38px; }
+    .custom-cursor.is-slice { width: 60px; height: 60px; }
     @media (pointer: coarse) {
-      .custom-cursor { display: none; }
+      .custom-cursor { display: none !important; }
     }
 
-    /* 建筑画廊主骨架 */
+    /* ================= 1. 连贯优雅的一体式建筑网格入场 (Seamless Architectural Entrance) ================= */
     .architectural-frame {
       position: relative;
-      width: 100vw;
-      height: 100vh;
-      padding: 36px 48px;
+      width: 100%;
+      height: 100dvh;
+      padding: 32px 44px calc(26px + var(--safe-bottom));
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
 
-    /* 顶部极简横梁 */
     .top-beam {
       position: relative;
       z-index: 20;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 20px;
+      padding-bottom: 18px;
       border-bottom: 1px solid var(--hairline);
+      flex-shrink: 0;
+      animation: beamSlideDown 0.9s var(--ease-out) both;
+    }
+
+    .bottom-beam {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid var(--hairline);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--fg-secondary);
+      flex-shrink: 0;
+      animation: beamSlideUp 0.9s 0.08s var(--ease-out) both;
+    }
+
+    @keyframes beamSlideDown {
+      0% { opacity: 0; transform: translateY(-14px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes beamSlideUp {
+      0% { opacity: 0; transform: translateY(14px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes stageFadeIn {
+      0% { opacity: 0; transform: scale(0.975); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
 
     .brand-mark {
       font-family: var(--font-brand);
       font-size: 13px;
-      letter-spacing: 5px;
+      letter-spacing: 4.5px;
       color: var(--fg);
       text-decoration: none;
-      font-weight: 400;
+      font-weight: 500;
+    }
+
+    .brand-sub-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--fg-muted);
+      padding-left: 14px;
+      border-left: 1px solid var(--hairline);
     }
 
     .top-meta {
       display: flex;
       align-items: center;
-      gap: 32px;
+      gap: 12px;
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 2px;
     }
 
     .channel-trigger {
-      background: none;
-      border: none;
+      background: var(--bg-subtle);
+      border: 1px solid var(--hairline);
       color: var(--fg);
       font-family: var(--font-mono);
       font-size: 11px;
-      letter-spacing: 2.5px;
+      letter-spacing: 2px;
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 4px 0;
+      height: 34px;
+      padding: 0 14px;
+      transition: border-color 0.3s var(--ease-out);
+    }
+    .channel-trigger:hover, .channel-trigger:active {
+      border-color: var(--fg);
     }
 
     .signal-beacon {
-      width: 5px;
-      height: 5px;
+      width: 6px;
+      height: 6px;
       background: var(--fg-muted);
       transition: background-color 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
     }
@@ -257,28 +209,23 @@
       box-shadow: 0 0 10px var(--vermilion);
     }
 
-    .theme-dot-btn {
-      background: none;
-      border: none;
-      width: 20px;
-      height: 20px;
+    .theme-btn {
+      background: transparent;
+      border: 1px solid var(--hairline);
+      color: var(--fg);
+      width: 34px;
+      height: 34px;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 14px;
+      transition: border-color 0.3s var(--ease-out);
     }
-    .theme-dot-btn::after {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border: 1px solid var(--fg);
-      background: var(--fg);
-      transition: transform 0.4s var(--ease-out);
-    }
-    .theme-dot-btn:hover::after {
-      transform: scale(1.35);
+    .theme-btn:hover, .theme-btn:active {
+      border-color: var(--fg);
     }
 
-    /* 中央主舞台（光学取景框 + 声呐 Canvas + 动态手风琴切片） */
+    /* ================= 2. 中央光学取景器舞台 ================= */
     .center-stage {
       position: relative;
       flex: 1;
@@ -287,7 +234,8 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      margin: 24px 0;
+      margin: 16px 0;
+      animation: stageFadeIn 1s 0.12s var(--ease-out) both;
     }
 
     #sonarCanvas {
@@ -299,7 +247,6 @@
       z-index: 1;
     }
 
-    /* 两侧竖排建筑标尺 */
     .side-pillar {
       position: absolute;
       top: 50%;
@@ -319,58 +266,73 @@
     .idle-monolith {
       position: relative;
       z-index: 5;
-      width: min(44vw, 520px);
-      height: min(56vh, 460px);
+      width: min(46vw, 500px);
+      height: min(52vh, 420px);
       border: 1px solid var(--hairline);
+      background: linear-gradient(135deg, rgba(var(--self-rgb, 94, 124, 226), 0.05) 0%, transparent 65%);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.6s var(--ease-silky), transform 0.6s var(--ease-silky), border-color 0.4s var(--ease-out);
+      padding: 28px;
+      text-align: center;
+      transition: border-color 0.4s var(--ease-out);
     }
 
-    .center-stage.drag-over .idle-monolith,
-    .center-stage.drag-over .slice-item {
+    .center-stage.drag-over .idle-monolith {
       border-color: var(--vermilion);
     }
 
     /* 四角精密准星 */
     .reticle {
       position: absolute;
-      width: 8px;
-      height: 8px;
+      width: 9px;
+      height: 9px;
       border-color: var(--fg);
       border-style: solid;
       border-width: 0;
-      transition: width 0.4s var(--ease-out), height 0.4s var(--ease-out), border-color 0.4s var(--ease-out);
+      pointer-events: none;
+      transition: width 0.35s var(--ease-out), height 0.35s var(--ease-out);
     }
-    .r-tl { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; }
-    .r-tr { top: -1px; right: -1px; border-top-width: 1px; border-right-width: 1px; }
-    .r-bl { bottom: -1px; left: -1px; border-bottom-width: 1px; border-left-width: 1px; }
-    .r-br { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
+    .r-tl { top: -1px; left: -1px; border-top-width: 1.5px; border-left-width: 1.5px; }
+    .r-tr { top: -1px; right: -1px; border-top-width: 1.5px; border-right-width: 1.5px; }
+    .r-bl { bottom: -1px; left: -1px; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+    .r-br { bottom: -1px; right: -1px; border-bottom-width: 1.5px; border-right-width: 1.5px; }
 
     .idle-title {
       font-family: var(--font-serif);
-      font-weight: 200;
-      font-size: clamp(24px, 2.8vw, 36px);
-      letter-spacing: 8px;
+      font-weight: 300;
+      font-size: clamp(22px, 2.6vw, 34px);
+      letter-spacing: 6px;
       color: var(--fg);
-      margin-right: -8px;
-      margin-bottom: 16px;
+      margin-right: -6px;
+      margin-bottom: 14px;
     }
 
     .idle-sub {
       font-family: var(--font-mono);
       font-size: 10px;
-      letter-spacing: 3px;
+      letter-spacing: 2.5px;
       color: var(--fg-secondary);
+      margin-bottom: 18px;
     }
 
-    /* 动态手风琴切片容器（当有设备接入时展现） */
+    .idle-guide {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--fg-muted);
+      line-height: 1.75;
+      max-width: 290px;
+      font-weight: 300;
+    }
+
+    /* ================= 3. 多彩光学手风琴切片 (Chromatic Architectural Slices) ================= */
     .kinetic-strip {
       position: relative;
       z-index: 10;
-      width: min(78vw, 1080px);
+      width: min(84vw, 1160px);
       height: min(64vh, 540px);
       display: none;
       align-items: stretch;
@@ -380,232 +342,333 @@
       display: flex;
     }
 
+    /* 每个设备切片：自带常驻双色品牌光谱与斜向色彩氛围层，告别单调黑白 */
     .slice-item {
-      --peer-accent-base: #7C7C7C;
-      --peer-accent: var(--peer-accent-base);
-      --peer-tint: color-mix(in srgb, var(--peer-accent) 7%, var(--bg));
+      --brand-primary: #4F6EF7;
+      --brand-secondary: #06B6D4;
+      --brand-rgb: 79, 110, 247;
+      --brand-sec-rgb: 6, 182, 212;
+
       position: relative;
       flex: 1 1 0%;
-      min-width: 0;
       border-top: 1px solid var(--hairline);
       border-bottom: 1px solid var(--hairline);
       border-right: 1px solid var(--hairline);
-      background: var(--bg);
+      background:
+        linear-gradient(155deg,
+          rgba(var(--brand-rgb), 0.085) 0%,
+          rgba(var(--brand-sec-rgb), 0.03) 48%,
+          transparent 85%),
+        var(--bg);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 28px 24px 24px;
-      isolation: isolate;
-      animation: peerReveal .45s var(--ease-silky) both;
-      transition: background-color .35s var(--ease-silky), border-color .3s var(--ease-out), flex-grow .18s linear;
-    }
-    .slice-item::after {
-      content: '';
-      position: absolute;
-      z-index: -1;
-      inset: 0;
-      background: linear-gradient(145deg, var(--peer-tint), transparent 72%);
-      opacity: .8;
-      pointer-events: none;
-    }
-    .slice-item:nth-child(2) { animation-delay: .035s; }
-    .slice-item:nth-child(3) { animation-delay: .07s; }
-    .slice-item:nth-child(4) { animation-delay: .105s; }
-    @keyframes peerReveal {
-      from { opacity: 0; transform: translateY(7px); }
-      to { opacity: 1; transform: translateY(0); }
+      padding: 28px 26px;
+      transition:
+        background 0.45s var(--ease-silky),
+        border-color 0.35s var(--ease-out),
+        box-shadow 0.45s var(--ease-out);
+      animation: sliceReveal 0.55s var(--ease-out) both;
     }
 
-    .slice-item::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--bg-subtle);
-      opacity: 0;
-      transition: opacity 0.5s var(--ease-silky);
-      pointer-events: none;
+    @keyframes sliceReveal {
+      0% { opacity: 0; transform: translateY(14px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
 
-    .slice-item.is-focused::before {
+    /* 聚焦或悬停时色彩饱和度与立体感明显跃升 */
+    .slice-item.is-focused,
+    .slice-item:hover {
+      background:
+        linear-gradient(155deg,
+          rgba(var(--brand-rgb), 0.16) 0%,
+          rgba(var(--brand-sec-rgb), 0.065) 55%,
+          rgba(var(--brand-rgb), 0.02) 100%),
+        var(--bg);
+      border-color: rgba(var(--brand-rgb), 0.45);
+      box-shadow: inset 0 0 40px rgba(var(--brand-rgb), 0.05);
+    }
+
+    /* 顶部 3px 双色渐变品牌冠线（常驻可见，聚焦时高亮发光） */
+    .slice-crown {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
+      opacity: 0.72;
+      transition: opacity 0.4s var(--ease-out), height 0.3s var(--ease-out), box-shadow 0.4s var(--ease-out);
+      z-index: 4;
+    }
+
+    .slice-item.is-focused .slice-crown,
+    .slice-item:hover .slice-crown {
       opacity: 1;
+      height: 4px;
+      box-shadow: 0 2px 16px rgba(var(--brand-rgb), 0.55);
     }
 
+    /* 右上角大尺寸径向色彩氛围光斑 */
+    .slice-aura {
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(var(--brand-rgb), 0.20) 0%, rgba(var(--brand-sec-rgb), 0.08) 45%, transparent 72%);
+      pointer-events: none;
+      z-index: 1;
+      transition: transform 0.6s var(--ease-out), opacity 0.5s;
+      opacity: 0.75;
+    }
+
+    .slice-item.is-focused .slice-aura,
+    .slice-item:hover .slice-aura {
+      opacity: 1;
+      transform: scale(1.22);
+    }
+
+    /* 切片背景巨型水印序号 */
+    .slice-watermark {
+      position: absolute;
+      right: 18px;
+      bottom: 54px;
+      font-family: var(--font-brand);
+      font-size: 76px;
+      font-weight: 600;
+      line-height: 1;
+      color: rgba(var(--brand-rgb), 0.055);
+      pointer-events: none;
+      z-index: 1;
+      transition: color 0.4s, transform 0.5s var(--ease-out);
+    }
+    .slice-item.is-focused .slice-watermark {
+      color: rgba(var(--brand-rgb), 0.095);
+      transform: translateY(-4px);
+    }
+
+    /* 切片头部：彩色指示点 + 品牌色徽章 */
     .slice-header {
       position: relative;
-      z-index: 2;
+      z-index: 3;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-      font-family: var(--font-mono);
-      font-size: 9px;
-      letter-spacing: 1.5px;
-      color: var(--fg-secondary);
+      align-items: center;
+      gap: 8px;
     }
-    .peer-identity { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .peer-mark {
-      flex: 0 0 36px;
-      width: 36px;
-      height: 36px;
-      display: grid;
-      place-items: center;
-      border: 1px solid color-mix(in srgb, var(--peer-accent) 42%, var(--hairline));
-      background: var(--peer-tint);
-      color: var(--peer-accent);
+
+    .slice-index-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-family: var(--font-mono);
       font-size: 10px;
-      letter-spacing: 0;
+      letter-spacing: 2px;
+      color: var(--fg-secondary);
     }
-    .peer-labels { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-    .peer-brand { color: var(--peer-accent); font-size: 10px; letter-spacing: 1.2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .peer-number { color: var(--fg-muted); font-size: 8px; letter-spacing: 1.2px; }
-    .slice-status-dot {
-      flex: 0 0 5px;
-      width: 5px;
-      height: 5px;
-      margin-top: 5px;
-      background: var(--peer-accent);
-      box-shadow: 0 0 8px color-mix(in srgb, var(--peer-accent) 46%, transparent);
-    }
-    html[data-theme="dark"] .slice-item { --peer-accent: color-mix(in srgb, var(--peer-accent-base) 58%, white); }
-    .slice-item.is-focused { border-color: color-mix(in srgb, var(--peer-accent) 60%, var(--hairline)); }
-    .slice-item.is-focused::before { opacity: .5; }
-    .slice-item.is-focused .slice-status-dot { transform: scale(1.2); }
 
-    /* 切片中央建筑排版 */
+    .brand-dot {
+      width: 7px;
+      height: 7px;
+      background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+      box-shadow: 0 0 10px rgba(var(--brand-rgb), 0.75);
+    }
+
+    .brand-pill {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      padding: 4px 9px;
+      border: 1px solid rgba(var(--brand-rgb), 0.45);
+      color: var(--brand-primary);
+      background: rgba(var(--brand-rgb), 0.10);
+      white-space: nowrap;
+    }
+    html[data-theme="dark"] .brand-pill {
+      color: #FFFFFF;
+      background: rgba(var(--brand-rgb), 0.24);
+      border-color: rgba(var(--brand-rgb), 0.6);
+    }
+
+    /* 切片中部：带品牌底色的几何线框图 + 型号与芯片铭牌 */
     .slice-body {
       position: relative;
-      z-index: 2;
+      z-index: 3;
       margin: auto 0;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 16px;
     }
 
-    .slice-name {
+    .blueprint-box {
+      width: 52px;
+      height: 52px;
+      border: 1px solid rgba(var(--brand-rgb), 0.35);
+      background: linear-gradient(135deg, rgba(var(--brand-rgb), 0.16), rgba(var(--brand-sec-rgb), 0.04));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--brand-primary);
+      transition: transform 0.45s var(--ease-out), border-color 0.35s, box-shadow 0.35s;
+    }
+    html[data-theme="dark"] .blueprint-box {
+      color: #FFFFFF;
+    }
+    .slice-item.is-focused .blueprint-box,
+    .slice-item:hover .blueprint-box {
+      transform: translateY(-2px);
+      border-color: var(--brand-primary);
+      box-shadow: 0 8px 20px -4px rgba(var(--brand-rgb), 0.32);
+    }
+
+    .blueprint-box svg {
+      width: 34px;
+      height: 34px;
+      stroke: currentColor;
+      stroke-width: 1.35;
+      fill: none;
+    }
+
+    .slice-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .slice-model {
       font-family: var(--font-serif);
-      font-weight: 300;
-      font-size: clamp(22px, 2.6vw, 36px);
-      letter-spacing: 1px;
-      line-height: 1.25;
+      font-weight: 500;
+      font-size: clamp(22px, 2.3vw, 32px);
+      letter-spacing: 0.8px;
       color: var(--fg);
-      overflow-wrap: anywhere;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      transition: transform .35s var(--ease-out);
-    }
-    .slice-type {
-      color: var(--fg-secondary);
-      font-size: 9px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-    .slice-actions { display: flex; align-items: center; gap: 12px; }
-    .slice-action-link {
-      min-height: 30px;
-      padding: 5px 0;
+      line-height: 1.18;
       white-space: nowrap;
-      color: var(--fg);
-    }
-    .slice-action-link.primary { color: var(--peer-accent); border-bottom: 1px solid color-mix(in srgb, var(--peer-accent) 45%, transparent); }
-    .slice-action-link:focus-visible, button:focus-visible, a:focus-visible {
-      outline: 1px solid var(--peer-accent, var(--fg));
-      outline-offset: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .slice-hint {
+    .slice-codename {
       font-family: var(--font-mono);
       font-size: 10px;
-      letter-spacing: 2px;
-      color: var(--fg-secondary);
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.45s var(--ease-out), transform 0.45s var(--ease-out);
-    }
-
-    .slice-item.is-focused .slice-hint {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .slice-footer {
-      position: relative;
-      z-index: 2;
+      font-weight: 500;
+      letter-spacing: 1.8px;
+      color: var(--brand-primary);
       display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .slice-device-spec {
       font-family: var(--font-mono);
       font-size: 10px;
       letter-spacing: 1.5px;
       color: var(--fg-secondary);
+      margin-top: 1px;
     }
 
-    .slice-action-link {
-      background: none;
-      border: none;
+    /* 切片底部：双动作区（传文件 + 发文字） */
+    .slice-footer {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid rgba(var(--brand-rgb), 0.22);
+      gap: 10px;
+    }
+
+    .primary-drop-hint {
       font-family: var(--font-mono);
       font-size: 10px;
-      letter-spacing: 2px;
+      letter-spacing: 1.5px;
       color: var(--fg-secondary);
-      padding: 4px 0;
-      border-bottom: 1px solid transparent;
-      transition: color 0.3s, border-color 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.25s;
     }
-    .slice-action-link:hover {
+    .slice-item:hover .primary-drop-hint {
       color: var(--fg);
-      border-color: var(--fg);
     }
 
-    /* 切片底部朱砂红传输流体线 */
+    .quick-action-btn {
+      background: rgba(var(--brand-rgb), 0.08);
+      border: 1px solid rgba(var(--brand-rgb), 0.35);
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      height: 34px;
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s var(--ease-out);
+      flex-shrink: 0;
+    }
+    .quick-action-btn:hover, .quick-action-btn:active {
+      background: var(--brand-primary);
+      border-color: var(--brand-primary);
+      color: #FFFFFF;
+    }
+
+    /* 底部传输进度流光条 */
     .slice-progress {
       position: absolute;
       bottom: 0;
       left: 0;
-      height: 2px;
+      height: 3px;
       width: 0%;
-      background: var(--peer-accent, var(--vermilion));
-      z-index: 5;
-      transition: width 0.18s linear;
+      background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
+      box-shadow: 0 0 12px var(--brand-primary);
+      z-index: 6;
+      transition: width 0.12s linear;
     }
 
-    /* 底部 EXIF 铭牌栏 */
-    .bottom-beam {
-      position: relative;
-      z-index: 20;
+    /* ================= 4. 底部本机身份与精准校准触发栏 ================= */
+    .self-capsule {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding-top: 20px;
-      border-top: 1px solid var(--hairline);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      letter-spacing: 2px;
-      color: var(--fg-secondary);
-    }
-
-    .identity-btn {
-      background: none;
-      border: none;
+      gap: 10px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--hairline);
       color: var(--fg);
       font-family: var(--font-mono);
       font-size: 11px;
-      letter-spacing: 2px;
-      padding-bottom: 2px;
-      border-bottom: 1px solid var(--hairline);
-      transition: border-color 0.3s var(--ease-out);
+      letter-spacing: 1.5px;
+      height: 36px;
+      padding: 0 14px 0 0;
+      text-align: left;
+      transition: border-color 0.25s;
     }
-    .identity-btn:hover {
+    .self-capsule:hover {
       border-color: var(--fg);
     }
 
-    /* 极简画廊级弹窗（无外框阴影，纯1px结构线与背景微模糊） */
+    .self-brand-bar {
+      width: 4px;
+      height: 100%;
+      background: var(--self-brand, var(--vermilion));
+      display: inline-block;
+    }
+
+    .self-calibrate-tag {
+      font-size: 9px;
+      padding: 2px 6px;
+      background: rgba(128, 128, 128, 0.12);
+      color: var(--fg-secondary);
+      margin-left: 4px;
+    }
+
+    /* ================= 5. 建筑风模态框 / 移动端底部抽屉 ================= */
     .sheet-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(255, 255, 255, .84);
+      background: rgba(10, 10, 12, 0.48);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       z-index: 200;
@@ -613,75 +676,77 @@
       align-items: center;
       justify-content: center;
       opacity: 0;
-      visibility: hidden;
       pointer-events: none;
-      transition: opacity .28s var(--ease-out), visibility .28s;
-      padding: 24px;
-      overscroll-behavior: contain;
-    }
-    html[data-theme="dark"] .sheet-overlay {
-      background: rgba(8, 8, 8, 0.88);
+      transition: opacity 0.35s var(--ease-out);
+      padding: 20px;
     }
     .sheet-overlay.active {
       opacity: 1;
-      visibility: visible;
       pointer-events: auto;
     }
 
     .sheet-dialog {
       width: 100%;
-      max-width: 440px;
-      background: var(--bg);
+      max-width: 480px;
+      background: var(--bg-elevated);
       border: 1px solid var(--fg);
-      padding: 40px 36px;
+      padding: 32px 30px;
       position: relative;
-      transform: translateY(12px);
-      max-height: calc(100dvh - 48px);
+      transform: translateY(16px);
+      transition: transform 0.35s var(--ease-out);
+      max-height: 90dvh;
       overflow-y: auto;
-      overscroll-behavior: contain;
-      -webkit-overflow-scrolling: touch;
-      transition: transform .28s var(--ease-out);
     }
-    .sheet-overlay.active .sheet-dialog { transform: translateY(0); }
+    .sheet-overlay.active .sheet-dialog {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      display: none;
+      width: 36px;
+      height: 3px;
+      background: var(--hairline);
+      margin: 0 auto 18px;
+    }
 
     .sheet-index {
       font-family: var(--font-mono);
       font-size: 9px;
       letter-spacing: 3px;
       color: var(--vermilion);
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     .sheet-heading {
       font-family: var(--font-serif);
-      font-weight: 300;
-      font-size: 26px;
-      letter-spacing: 2px;
+      font-weight: 400;
+      font-size: 23px;
+      letter-spacing: 1.5px;
       color: var(--fg);
-      margin-bottom: 28px;
+      margin-bottom: 20px;
     }
 
     .sheet-preview-img {
       width: 100%;
-      max-height: 240px;
+      max-height: 220px;
       object-fit: contain;
       border: 1px solid var(--hairline);
       background: var(--bg-subtle);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       display: none;
     }
 
     .sheet-specs {
       border-top: 1px solid var(--hairline);
       border-bottom: 1px solid var(--hairline);
-      padding: 16px 0;
-      margin-bottom: 28px;
+      padding: 14px 0;
+      margin-bottom: 22px;
       font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 1px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .spec-line {
@@ -696,37 +761,94 @@
       word-break: break-all;
     }
 
-    .minimal-input, .minimal-textarea {
-      width: 100%;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--fg);
+    /* 校准面板：品牌网格 + 形态网格 + 快捷真机型号预设 */
+    .cal-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--fg-secondary);
+      margin: 14px 0 8px;
+      display: block;
+    }
+
+    .cal-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .cal-option-btn {
+      height: 34px;
+      border: 1px solid var(--hairline);
+      background: var(--bg-subtle);
       color: var(--fg);
       font-family: var(--font-mono);
-      font-size: 16px;
+      font-size: 10px;
       letter-spacing: 1px;
-      padding: 12px 0;
-      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .cal-option-btn.selected {
+      border-color: var(--fg);
+      background: var(--fg);
+      color: var(--bg);
+      font-weight: 500;
+    }
+
+    .preset-chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .preset-chip {
+      background: transparent;
+      border: 1px solid var(--hairline);
+      color: var(--fg-secondary);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 5px 10px;
+      transition: all 0.2s;
+    }
+    .preset-chip:hover, .preset-chip:active {
+      border-color: var(--fg);
+      color: var(--fg);
+    }
+
+    .minimal-input, .minimal-textarea {
+      width: 100%;
+      background: var(--bg-subtle);
+      border: 1px solid var(--hairline);
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      letter-spacing: 1px;
+      padding: 11px 14px;
+      margin-bottom: 20px;
       outline: none;
+      transition: border-color 0.25s;
     }
     .minimal-textarea {
-      border: 1px solid var(--hairline);
-      padding: 14px;
-      min-height: 110px;
-      font-family: var(--font-serif);
-      font-size: 16px;
-      letter-spacing: 1px;
+      min-height: 105px;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      line-height: 1.6;
       resize: none;
-      transition: border-color 0.3s;
     }
-    .minimal-textarea:focus {
+    .minimal-input:focus, .minimal-textarea:focus {
       border-color: var(--fg);
     }
 
     .sheet-controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 12px;
     }
 
     .slab-btn {
@@ -736,10 +858,10 @@
       color: var(--fg);
       font-family: var(--font-mono);
       font-size: 11px;
-      letter-spacing: 3px;
-      transition: all 0.3s var(--ease-out);
+      letter-spacing: 2.5px;
+      transition: all 0.25s var(--ease-out);
     }
-    .slab-btn:hover {
+    .slab-btn:hover, .slab-btn:active {
       border-color: var(--fg);
     }
     .slab-btn.solid {
@@ -747,203 +869,175 @@
       color: var(--bg);
       border-color: var(--fg);
     }
-    .slab-btn.solid:hover {
-      opacity: 0.85;
-    }
 
-    /* 顶部极简浮现通知 */
+    /* 顶部轻提示 */
     .whisper-toast {
       position: fixed;
-      top: 36px;
+      top: 24px;
       left: 50%;
       transform: translate(-50%, -14px);
       background: var(--fg);
       color: var(--bg);
       font-family: var(--font-mono);
       font-size: 10px;
-      letter-spacing: 2.5px;
-      padding: 9px 22px;
+      letter-spacing: 2px;
+      padding: 10px 20px;
       z-index: 400;
       opacity: 0;
       pointer-events: none;
-      transition: all 0.4s var(--ease-out);
+      transition: all 0.35s var(--ease-out);
+      white-space: nowrap;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
     }
     .whisper-toast.show {
       opacity: 1;
       transform: translate(-50%, 0);
     }
 
+    /* ================= 6. 移动端深度优化 (<= 768px) ================= */
     @media (max-width: 768px) {
-      html, body { width: 100%; height: 100%; }
       .architectural-frame {
-        width: 100%;
-        height: 100vh;
-        height: 100dvh;
-        min-height: 0;
-        padding: calc(14px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
+        padding: 14px 16px calc(14px + var(--safe-bottom));
       }
-      .top-beam { padding-bottom: 13px; gap: 14px; }
-      .brand-mark { font-size: 11px; letter-spacing: 2.5px; }
-      .top-meta { gap: 12px; }
-      .theme-dot-btn { min-width: 36px; min-height: 36px; }
-      .channel-trigger { gap: 8px; min-height: 36px; font-size: 10px; letter-spacing: 1.5px; }
-      .center-stage { margin: 14px 0; min-height: 0; overflow: hidden; }
+      .top-beam { padding-bottom: 12px; }
+      .brand-mark { font-size: 12px; letter-spacing: 3px; }
+      .brand-sub-tag { display: none; }
       .side-pillar { display: none; }
-      .idle-monolith { width: 100%; height: min(43vh, 390px); min-height: 230px; }
-      .idle-title { font-size: clamp(21px, 6vw, 29px); letter-spacing: 4px; margin-right: -4px; }
-      .idle-sub { font-size: 9px; letter-spacing: 2px; }
-      .kinetic-strip.has-peers {
+      .center-stage { margin: 10px 0; align-items: stretch; }
+
+      .idle-monolith {
+        width: 100%;
+        height: auto;
+        min-height: 300px;
+        margin: auto 0;
+      }
+
+      /* 移动端：纵向彩色建筑展卡流 */
+      .kinetic-strip {
         width: 100%;
         height: 100%;
-        max-height: 100%;
-        flex: 1;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-auto-rows: minmax(178px, auto);
-        align-content: start;
-        align-items: stretch;
-        gap: 9px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 1px 1px 8px;
-        border: 0;
-        scrollbar-width: thin;
-        scrollbar-color: var(--hairline) transparent;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-      }
-      .slice-item {
-        min-width: 0;
-        min-height: 178px;
-        padding: 13px 12px 10px;
-        border: 1px solid var(--hairline);
-        border-top: 2px solid var(--peer-accent);
-        flex: none !important;
+        flex-direction: column;
+        border-left: none;
         gap: 12px;
+        overflow-y: auto;
+        padding: 2px 0;
+        scrollbar-width: none;
       }
-      .slice-header { gap: 5px; }
-      .peer-identity { gap: 7px; }
-      .peer-mark { flex-basis: 28px; width: 28px; height: 28px; font-size: 9px; }
-      .peer-brand { font-size: 9px; letter-spacing: .7px; }
-      .peer-number { font-size: 7px; letter-spacing: .8px; }
-      .slice-body { gap: 7px; margin: 0; }
-      .slice-name { font-size: clamp(17px, 4.5vw, 22px); line-height: 1.25; letter-spacing: .2px; }
-      .slice-hint { opacity: 1; transform: none; font-size: 8px; letter-spacing: .7px; line-height: 1.4; }
-      .slice-footer { display: flex; flex-direction: column; align-items: stretch; gap: 7px; font-size: 8px; letter-spacing: .5px; }
-      .slice-type { font-size: 8px; letter-spacing: .6px; }
-      .slice-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
-      .slice-action-link {
-        min-width: 0;
-        min-height: 40px;
-        padding: 7px 0 5px;
-        border-bottom: 1px solid var(--hairline);
-        font-size: 9px;
-        letter-spacing: .2px;
-        text-align: center;
-      }
-      .slice-progress { height: 2px; }
-      .bottom-beam { padding-top: 13px; font-size: 9px; letter-spacing: 1px; gap: 12px; }
-      .identity-btn { min-height: 36px; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; letter-spacing: 1px; }
-      .sheet-overlay { align-items: flex-end; padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); }
-      .sheet-dialog {
-        max-width: none;
-        width: 100%;
-        max-height: calc(100dvh - 20px - env(safe-area-inset-top));
-        padding: 28px 22px calc(22px + env(safe-area-inset-bottom));
-        border-color: var(--hairline);
-      }
-      .sheet-heading { font-size: 24px; margin-bottom: 22px; }
-      .sheet-specs { font-size: 10px; margin-bottom: 22px; }
-      .sheet-controls { gap: 10px; }
-      .slab-btn { min-height: 46px; height: auto; font-size: 10px; letter-spacing: 1.5px; }
-      .minimal-input, .minimal-textarea { font-size: 16px; margin-bottom: 24px; }
-      .minimal-textarea { min-height: 120px; }
-      .whisper-toast { top: calc(16px + env(safe-area-inset-top)); width: max-content; max-width: calc(100vw - 32px); text-align: center; }
-    }
-    @media (max-width: 380px) {
-      .architectural-frame { padding-left: 12px; padding-right: 12px; }
-      .kinetic-strip.has-peers { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; }
-      .slice-item { min-height: 160px; }
-      .slice-footer { flex-direction: row; align-items: center; justify-content: space-between; }
-      .slice-actions { display: flex; gap: 12px; }
-      .slice-action-link { min-height: 30px; font-size: 9px; }
-    }
-    @media (pointer: coarse) {
-      .custom-cursor { display: none !important; }
-      .slice-item { cursor: default; }
-      .slice-action-link, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
-    }
+      .kinetic-strip::-webkit-scrollbar { display: none; }
 
-      </style>
+      .slice-item {
+        flex: 0 0 auto !important;
+        min-height: 168px;
+        border: 1px solid rgba(var(--brand-rgb), 0.35);
+        padding: 18px 18px 14px;
+      }
+
+      .slice-crown {
+        opacity: 1;
+        height: 3px;
+      }
+
+      .slice-body {
+        flex-direction: row;
+        align-items: center;
+        gap: 14px;
+        margin: 12px 0;
+      }
+
+      .blueprint-box {
+        width: 46px;
+        height: 46px;
+        flex-shrink: 0;
+      }
+
+      .slice-model { font-size: 20px; }
+      .slice-watermark { font-size: 56px; bottom: 44px; right: 12px; }
+
+      .quick-action-btn {
+        height: 36px;
+        padding: 0 14px;
+        font-size: 11px;
+      }
+
+      .sheet-overlay {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .sheet-dialog {
+        max-width: 100%;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        padding: 16px 20px calc(22px + var(--safe-bottom));
+        transform: translateY(100%);
+      }
+      .sheet-handle { display: block; }
+      .cal-grid-4 { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
 </head>
 <body>
 
   <div class="film-grain"></div>
-
-  <!-- 1. 轻量几何开场加载器 -->
-  <div class="kinetic-loader" id="kineticLoader" role="status" aria-label="正在初始化设备场域">
-    <div class="loader-core">
-      <div class="loader-glyph" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-      <div class="loader-wordmark">XIANG VISUALS <i>/ DROP</i></div>
-      <div class="loader-track" aria-hidden="true"><span></span></div>
-      <p class="loader-caption">INITIALIZING LOCAL NODE</p>
-    </div>
-  </div>
-
-  <!-- 2. 磁吸差值光标 -->
   <div class="custom-cursor" id="customCursor"></div>
 
-  <!-- 3. 建筑网格主视口 -->
+  <!-- 瑞士建筑网格主视口 -->
   <div class="architectural-frame">
     <header class="top-beam">
-      <a href="https://xiangvisuals.com/" target="_blank" rel="noopener" class="brand-mark" data-cursor="hover">XIANG VISUALS</a>
+      <div class="brand-group">
+        <a href="https://xiangvisuals.com/" target="_blank" rel="noopener" class="brand-mark" data-cursor="hover">XIANG VISUALS</a>
+        <span class="brand-sub-tag">OPTICAL DROP</span>
+      </div>
       <div class="top-meta">
-        <button class="channel-trigger" id="roomTrigger" data-cursor="hover" title="配对频道">
+        <button class="channel-trigger" id="roomTrigger" data-cursor="hover" title="点击切换配对频道码">
           <span class="signal-beacon" id="signalBeacon"></span>
-          <span id="roomCodeText">0411</span>
+          <span>CH // <strong id="roomCodeText">0411</strong></span>
         </button>
-        <button class="theme-dot-btn" id="themeToggle" data-cursor="hover" title="明暗场切换"></button>
+        <button class="theme-btn" id="themeToggle" data-cursor="hover" title="切换明暗场">
+          <i class="ri-contrast-2-line"></i>
+        </button>
       </div>
     </header>
 
     <main class="center-stage" id="centerStage">
       <canvas id="sonarCanvas"></canvas>
 
-      <div class="side-pillar left">OPTICAL P2P FIELD</div>
-      <div class="side-pillar right" id="coordPillar">38.9140° N, 121.6147° E</div>
+      <div class="side-pillar left">ARCHITECTURAL P2P FIELD</div>
+      <div class="side-pillar right">38.9140° N, 121.6147° E</div>
 
-      <!-- 静谧待机取景器（无任何虚假节点） -->
+      <!-- 静谧待机取景器 -->
       <div class="idle-monolith" id="idleMonolith">
         <div class="reticle r-tl"></div>
         <div class="reticle r-tr"></div>
         <div class="reticle r-bl"></div>
         <div class="reticle r-br"></div>
         <h1 class="idle-title">静候场域接入</h1>
-        <p class="idle-sub" id="idleSubText">CH // 0411</p>
+        <p class="idle-sub" id="idleSubText">CHANNEL // 0411</p>
+        <p class="idle-guide">在另一台手机或电脑打开此页面并保持相同频道码，设备将以专属品牌光谱切片浮现。</p>
       </div>
 
-      <!-- 阻尼手风琴画廊切片（真实设备接入后浮现） -->
+      <!-- 多彩光学手风琴切片容器 -->
       <div class="kinetic-strip" id="kineticStrip"></div>
     </main>
 
     <footer class="bottom-beam">
-      <button class="identity-btn" id="selfIdentityBtn" data-cursor="hover">NODE</button>
+      <button class="self-capsule" id="selfIdentityBtn" data-cursor="hover" title="点击校准本机真实型号与品牌配色">
+        <span class="self-brand-bar" id="selfBrandBar"></span>
+        <span id="selfNameText">DETECTING...</span>
+        <span class="self-calibrate-tag">校准机型</span>
+      </button>
       <span id="peerCountIndicator">00 ONLINE</span>
     </footer>
   </div>
 
   <input type="file" id="hiddenFileInput" multiple style="display: none;" />
 
-  <!-- 接收投递确认单 -->
+  <!-- 1. 接收投递确认单 -->
   <div class="sheet-overlay" id="receiveSheet">
     <div class="sheet-dialog">
+      <div class="sheet-handle"></div>
       <div class="reticle r-tl"></div>
       <div class="reticle r-tr"></div>
-      <div class="reticle r-bl"></div>
-      <div class="reticle r-br"></div>
       <div class="sheet-index" id="recIndex">INCOMING</div>
       <h2 class="sheet-heading" id="recHeading">收到投递</h2>
       <img class="sheet-preview-img" id="recImg" alt="Preview" />
@@ -955,17 +1049,44 @@
     </div>
   </div>
 
-  <!-- 极简输入面板（修改频道 / 修改本机名 / 投递文字） -->
-  <div class="sheet-overlay" id="promptSheet">
+  <!-- 2. 本机型号与品牌光谱精准校准面板 -->
+  <div class="sheet-overlay" id="calibrateSheet">
     <div class="sheet-dialog">
+      <div class="sheet-handle"></div>
       <div class="reticle r-tl"></div>
       <div class="reticle r-tr"></div>
-      <div class="reticle r-bl"></div>
-      <div class="reticle r-br"></div>
-      <div class="sheet-index" id="prmIndex">CONFIG</div>
+      <div class="sheet-index">HARDWARE CALIBRATION // 硬件标识校准</div>
+      <h2 class="sheet-heading">校准本机型号与品牌色</h2>
+
+      <span class="cal-label">01 // 品牌专属光谱 (BRAND SPECTRUM)</span>
+      <div class="cal-grid-4" id="calBrandGrid"></div>
+
+      <span class="cal-label">02 // 设备终端形态 (FORM FACTOR)</span>
+      <div class="cal-grid-4" id="calFormGrid"></div>
+
+      <span class="cal-label">03 // 常用真机一键预设 (QUICK PRESETS)</span>
+      <div class="preset-chips-wrap" id="presetChipsWrap"></div>
+
+      <span class="cal-label">04 // 完整设备名称 (MODEL & CODENAME)</span>
+      <input type="text" class="minimal-input" id="calModelInput" placeholder="例如：MacBook Pro · 曜石" />
+
+      <div class="sheet-controls">
+        <button class="slab-btn" id="calCancelBtn" data-cursor="hover">取消</button>
+        <button class="slab-btn solid" id="calSaveBtn" data-cursor="hover">保存并同步</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 文字投递 / 频道设定面板 -->
+  <div class="sheet-overlay" id="promptSheet">
+    <div class="sheet-dialog">
+      <div class="sheet-handle"></div>
+      <div class="reticle r-tl"></div>
+      <div class="reticle r-tr"></div>
+      <div class="sheet-index" id="prmIndex">CONFIGURE</div>
       <h2 class="sheet-heading" id="prmHeading">参数设定</h2>
-      <input type="text" class="minimal-input" id="prmInput" maxlength="28" autocomplete="off" placeholder="例如：祥的 iPhone / 工作 Mac" style="display: none;" />
-      <textarea class="minimal-textarea" id="prmTextarea" placeholder="输入内容..."></textarea>
+      <input type="text" class="minimal-input" id="prmInput" style="display: none;" />
+      <textarea class="minimal-textarea" id="prmTextarea" placeholder="在此输入要投递的文字或链接..."></textarea>
       <div class="sheet-controls">
         <button class="slab-btn" id="prmCancelBtn" data-cursor="hover">取消</button>
         <button class="slab-btn solid" id="prmOkBtn" data-cursor="hover">确认</button>
@@ -978,13 +1099,269 @@
   <script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
   <script>
     (function () {
-      // ================== 1. 轻量开场加载器 ==================
-      const loader = document.getElementById('kineticLoader');
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      // 不等待 MQTT / WebRTC：网络不可用时页面也会准时进入可用状态。
-      window.setTimeout(() => loader.classList.add('done'), reduceMotion ? 120 : 620);
+      // ================== 1. 双色品牌光谱与常用真机预设库 ==================
+      const BRAND_PROFILES = {
+        APPLE: {
+          key: 'APPLE',
+          name: 'Apple',
+          badge: 'APPLE // 钛金冰蓝',
+          primary: '#4F6EF7',
+          secondary: '#06B6D4',
+          rgb: '79, 110, 247',
+          secRgb: '6, 182, 212',
+          presets: ['MacBook Pro · 曜石', 'Mac mini · 银盐', 'iPhone 16 Pro · 钛金', 'iPhone 16 Pro Max · 钛金', 'iPad Pro · 焦平面']
+        },
+        VIVO: {
+          key: 'VIVO',
+          name: 'vivo',
+          badge: 'VIVO // 蔡司光学蓝',
+          primary: '#2563EB',
+          secondary: '#38BDF8',
+          rgb: '37, 99, 235',
+          secRgb: '56, 189, 248',
+          presets: ['vivo X200 Pro · 蔡司', 'vivo X100 Ultra · 蔡司', 'vivo X100 Pro · 蓝图', 'iQOO 13 · 传奇']
+        },
+        XIAOMI: {
+          key: 'XIAOMI',
+          name: '小米',
+          badge: 'XIAOMI // 徕卡赤橙',
+          primary: '#FF6900',
+          secondary: '#F43F5E',
+          rgb: '255, 105, 0',
+          secRgb: '244, 63, 94',
+          presets: ['Xiaomi 15 Pro · 徕卡', 'Xiaomi 14 Ultra · 银盐', 'Redmi K80 Pro · 暗房', 'Xiaomi Pad 7 Pro · 棱镜']
+        },
+        HUAWEI: {
+          key: 'HUAWEI',
+          name: '华为',
+          badge: 'HUAWEI // 暗室朱砂',
+          primary: '#C82829',
+          secondary: '#F97316',
+          rgb: '200, 40, 41',
+          secRgb: '249, 115, 22',
+          presets: ['HUAWEI Mate 70 Pro · 朱砂', 'HUAWEI Pura 70 Ultra · 旋标', 'MateBook X Pro · 云母', 'HONOR Magic7 Pro · 鹰眼']
+        },
+        SAMSUNG: {
+          key: 'SAMSUNG',
+          name: '三星',
+          badge: 'GALAXY // 星际钛紫',
+          primary: '#7C3AED',
+          secondary: '#EC4899',
+          rgb: '124, 58, 237',
+          secRgb: '236, 72, 153',
+          presets: ['Galaxy S24 Ultra · 钛紫', 'Galaxy Z Fold6 · 棱镜', 'Galaxy Tab S10 · 星际']
+        },
+        OPPO: {
+          key: 'OPPO',
+          name: 'OPPO',
+          badge: 'OPPO // 哈苏翡冷翠',
+          primary: '#059669',
+          secondary: '#14B8A6',
+          rgb: '5, 150, 105',
+          secRgb: '20, 184, 166',
+          presets: ['OPPO Find X8 Pro · 哈苏', 'OPPO Find X7 Ultra · 大师', 'OnePlus 13 · 黑曜']
+        },
+        WINDOWS: {
+          key: 'WINDOWS',
+          name: 'Windows',
+          badge: 'WINDOWS // 棱镜青',
+          primary: '#0284C7',
+          secondary: '#6366F1',
+          rgb: '2, 132, 199',
+          secRgb: '99, 102, 241',
+          presets: ['Windows Workstation · 棱镜', 'ROG Zephyrus · 极昼', 'ThinkPad X1 · 碳纤', 'Surface Laptop · 铂金']
+        },
+        LINUX: {
+          key: 'LINUX',
+          name: 'Linux',
+          badge: 'UNIX // 琥珀金',
+          primary: '#D97706',
+          secondary: '#EF4444',
+          rgb: '217, 119, 6',
+          secRgb: '239, 68, 68',
+          presets: ['Linux Node · 琥珀', 'Ubuntu Studio · 极客', 'Arch Workstation · 核心']
+        }
+      };
 
-      // ================== 2. 磁吸反色光标引擎 ==================
+      const DEVICE_WIREFRAMES = {
+        PHONE: `
+          <svg viewBox="0 0 48 48">
+            <rect x="13" y="5" width="22" height="38" />
+            <line x1="21" y1="9" x2="27" y2="9" />
+            <circle cx="24" cy="24" r="5.5" stroke-dasharray="2 2" />
+            <line x1="20" y1="39" x2="28" y2="39" />
+          </svg>`,
+        TABLET: `
+          <svg viewBox="0 0 48 48">
+            <rect x="8" y="6" width="32" height="36" />
+            <line x1="12" y1="6" x2="12" y2="42" stroke-opacity="0.35" />
+            <circle cx="26" cy="24" r="6" stroke-dasharray="2 2" />
+            <circle cx="37" cy="24" r="1" />
+          </svg>`,
+        LAPTOP: `
+          <svg viewBox="0 0 48 48">
+            <rect x="9" y="10" width="30" height="21" />
+            <line x1="4" y1="34" x2="44" y2="34" />
+            <line x1="7" y1="37" x2="41" y2="37" />
+            <circle cx="24" cy="20.5" r="4" stroke-dasharray="2 2" />
+          </svg>`,
+        DESKTOP: `
+          <svg viewBox="0 0 48 48">
+            <rect x="6" y="8" width="36" height="23" />
+            <line x1="24" y1="31" x2="24" y2="39" />
+            <line x1="15" y1="39" x2="33" y2="39" />
+            <line x1="10" y1="12" x2="16" y2="12" />
+          </svg>`
+      };
+
+      const FORM_META = {
+        PHONE:   { key: 'PHONE',   short: '手机',   spec: 'HANDHELD // 移动终端' },
+        TABLET:  { key: 'TABLET',  short: '平板',   spec: 'TABLET // 平板终端' },
+        LAPTOP:  { key: 'LAPTOP',  short: '笔记本', spec: 'PORTABLE // 便携工作站' },
+        DESKTOP: { key: 'DESKTOP', short: '桌面端', spec: 'WORKSTATION // 桌面工作站' }
+      };
+
+      const OPTICAL_CODENAMES = ['曜石', '银盐', '钛金', '棱镜', '暗房', '焦平面', '白金', '云母'];
+
+      // 常见安卓 Build 型号字典映射
+      const ANDROID_BUILD_DICT = {
+        'V2324A': 'vivo X100 Pro',
+        'V2309A': 'vivo X100',
+        'V2366GA': 'vivo X100 Ultra',
+        'V2405A': 'vivo X200 Pro',
+        'V2415A': 'vivo X200',
+        '23116PN5BC': 'Xiaomi 14 Pro',
+        '24031PN0DC': 'Xiaomi 14 Ultra',
+        '24129PN74C': 'Xiaomi 15',
+        '2410DPN6CC': 'Xiaomi 15 Pro',
+        'ALN-AL00': 'HUAWEI Mate 60 Pro',
+        'HBK-AL00': 'HUAWEI Pura 70 Ultra'
+      };
+
+      function hashStr(s) {
+        let h = 0;
+        for (let i = 0; i < s.length; i++) h = ((h << 5) - h) + s.charCodeAt(i) | 0;
+        return Math.abs(h);
+      }
+
+      // ================== 2. 多维深度硬件识别引擎 ==================
+      function readWebGLRenderer() {
+        try {
+          const c = document.createElement('canvas');
+          const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+          if (!gl) return '';
+          const ext = gl.getExtension('WEBGL_debug_renderer_info');
+          return ext ? (gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '') : '';
+        } catch (e) {
+          return '';
+        }
+      }
+
+      function inferHardwareProfile() {
+        const ua = navigator.userAgent || '';
+        const platform = navigator.platform || '';
+        const sw = window.screen.width;
+        const sh = window.screen.height;
+        const dpr = Math.round(window.devicePixelRatio || 1);
+        const maxD = Math.max(sw, sh);
+        const minD = Math.min(sw, sh);
+        const gpu = readWebGLRenderer();
+
+        let seed = localStorage.getItem('xv_seed_v4');
+        if (!seed) {
+          seed = Math.random().toString(36).substring(2, 7);
+          localStorage.setItem('xv_seed_v4', seed);
+        }
+        const codename = OPTICAL_CODENAMES[hashStr(ua + sw + sh + seed) % OPTICAL_CODENAMES.length];
+
+        let brandKey = 'APPLE';
+        let formFactor = 'LAPTOP';
+        let modelBase = 'MacBook Pro';
+
+        const isIPad = /iPad/i.test(ua) || (platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const isIPhone = /iPhone/i.test(ua);
+        const isMac = /Macintosh|Mac OS X/i.test(ua) && !isIPad;
+
+        if (isIPhone) {
+          brandKey = 'APPLE';
+          formFactor = 'PHONE';
+          const screenKey = `${minD}x${maxD}@${dpr}`;
+          const iphoneMap = {
+            '440x956@3': 'iPhone 16 Pro Max',
+            '402x874@3': 'iPhone 16 Pro',
+            '430x932@3': 'iPhone 15 / 16 Plus',
+            '393x852@3': 'iPhone 15 / 16 Pro',
+            '428x926@3': 'iPhone 14 Plus / 13 Pro Max',
+            '390x844@3': 'iPhone 14 / 13 Pro'
+          };
+          modelBase = iphoneMap[screenKey] || 'iPhone';
+        } else if (isIPad) {
+          brandKey = 'APPLE';
+          formFactor = 'TABLET';
+          modelBase = maxD >= 1180 ? 'iPad Pro' : 'iPad Air';
+        } else if (isMac) {
+          brandKey = 'APPLE';
+          const chipMatch = gpu.match(/Apple (M\d(?:\s(?:Pro|Max|Ultra))?)/i);
+          const chipSuffix = chipMatch ? ` (${chipMatch[1]})` : '';
+          // 判断是外接大屏主机 (Mac mini / Studio) 还是内置视网膜屏笔记本
+          if (dpr === 2 && (maxD === 1512 || maxD === 1728 || maxD === 1440 || maxD === 1680)) {
+            formFactor = 'LAPTOP';
+            modelBase = `MacBook Pro${chipSuffix}`;
+          } else if (dpr === 2 && (maxD === 1470 || maxD === 1366)) {
+            formFactor = 'LAPTOP';
+            modelBase = `MacBook Air${chipSuffix}`;
+          } else if (maxD >= 2560 || dpr === 1) {
+            formFactor = 'DESKTOP';
+            modelBase = `Mac mini / Studio${chipSuffix}`;
+          } else {
+            formFactor = 'LAPTOP';
+            modelBase = `MacBook Pro${chipSuffix}`;
+          }
+        } else if (/Android/i.test(ua)) {
+          formFactor = minD >= 600 ? 'TABLET' : 'PHONE';
+          const buildMatch = ua.match(/;\s*([^;)]+?)\s+Build\//i);
+          const rawModel = buildMatch ? buildMatch[1].trim() : '';
+
+          if (/vivo|iQOO|V2\d{3}/i.test(ua) || /vivo|V2/i.test(rawModel)) {
+            brandKey = 'VIVO';
+            modelBase = ANDROID_BUILD_DICT[rawModel] || (/iQOO/i.test(ua) ? 'iQOO Flagship' : (rawModel || 'vivo X Series'));
+          } else if (/Xiaomi|Redmi|Mi |23\d{4}|24\d{4}/i.test(ua)) {
+            brandKey = 'XIAOMI';
+            modelBase = ANDROID_BUILD_DICT[rawModel] || (/Redmi/i.test(ua) ? 'Redmi K Series' : (rawModel || 'Xiaomi Ultra'));
+          } else if (/HUAWEI|HarmonyOS|HONOR|ALN-|HBK-|Pura|Mate/i.test(ua)) {
+            brandKey = 'HUAWEI';
+            modelBase = ANDROID_BUILD_DICT[rawModel] || (/HONOR/i.test(ua) ? 'HONOR Magic' : (rawModel || 'HUAWEI Mate'));
+          } else if (/Samsung|SM-|Galaxy/i.test(ua)) {
+            brandKey = 'SAMSUNG';
+            modelBase = rawModel ? `Galaxy ${rawModel}` : 'Galaxy Ultra';
+          } else if (/OPPO|OnePlus|Find|PH\w+|PG\w+/i.test(ua)) {
+            brandKey = 'OPPO';
+            modelBase = /OnePlus/i.test(ua) ? 'OnePlus' : 'OPPO Find';
+          } else {
+            brandKey = 'LINUX';
+            modelBase = rawModel || 'Android Terminal';
+          }
+        } else if (/Win/i.test(ua)) {
+          brandKey = 'WINDOWS';
+          formFactor = maxD <= 1920 ? 'LAPTOP' : 'DESKTOP';
+          const rtx = gpu.match(/RTX\s?\d{4}/i);
+          modelBase = rtx ? `Windows PC (${rtx[0]})` : 'Windows Workstation';
+        } else {
+          brandKey = 'LINUX';
+          formFactor = 'DESKTOP';
+          modelBase = 'Linux Workstation';
+        }
+
+        return {
+          brandKey,
+          formFactor,
+          codename,
+          name: `${modelBase} · ${codename}`,
+          userLocked: false
+        };
+      }
+
+      // ================== 3. 磁吸反色光标与 60fps 光学声呐 ==================
       const cursor = document.getElementById('customCursor');
       let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
       let curX = mouseX, curY = mouseY;
@@ -992,10 +1369,10 @@
       window.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
         mouseY = e.clientY;
-        const target = e.target;
-        if (target.closest('.slice-item')) {
+        const t = e.target;
+        if (t.closest('.slice-item')) {
           cursor.className = 'custom-cursor is-slice';
-        } else if (target.closest('[data-cursor="hover"]') || target.closest('button') || target.closest('a')) {
+        } else if (t.closest('[data-cursor="hover"]') || t.closest('button') || t.closest('a')) {
           cursor.className = 'custom-cursor is-hover';
         } else {
           cursor.className = 'custom-cursor';
@@ -1008,16 +1385,15 @@
         cursor.style.transform = `translate3d(${curX}px, ${curY}px, 0) translate(-50%, -50%)`;
         requestAnimationFrame(tickCursor);
       }
-      if (window.matchMedia('(pointer: fine)').matches) tickCursor();
+      tickCursor();
 
-      // ================== 3. 轻量光学声呐背景 ==================
       const canvas = document.getElementById('sonarCanvas');
       const ctx = canvas.getContext('2d');
       let cw = 0, ch = 0, sonarPhase = 0;
 
       function resizeCanvas() {
         const rect = canvas.parentElement.getBoundingClientRect();
-        const dpr = Math.min(window.devicePixelRatio || 1, window.matchMedia('(pointer: coarse)').matches ? 1.35 : 2);
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
         cw = rect.width;
         ch = rect.height;
         canvas.width = cw * dpr;
@@ -1027,44 +1403,31 @@
       window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
 
-      let sonarLastFrame = 0;
-      function renderSonar(now = 0) {
-        if (document.visibilityState === 'hidden') {
-          if (!reduceMotion) requestAnimationFrame(renderSonar);
-          return;
-        }
-        const frameInterval = window.matchMedia('(pointer: coarse)').matches ? 1000 / 30 : 0;
-        if (frameInterval && now - sonarLastFrame < frameInterval) {
-          requestAnimationFrame(renderSonar);
-          return;
-        }
-        sonarLastFrame = now;
+      function renderSonar() {
         ctx.clearRect(0, 0, cw, ch);
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const strokeRGB = isDark ? '255, 255, 255' : '10, 10, 10';
-        const cx = cw / 2;
-        const cy = ch / 2;
-        const maxR = Math.min(cw, ch) * 0.46;
+        const cx = cw / 2, cy = ch / 2;
+        const maxR = Math.min(cw, ch) * 0.45;
 
-        sonarPhase += window.matchMedia('(pointer: coarse)').matches ? 0.0018 : 0.0025;
-        const ringCount = window.matchMedia('(pointer: coarse)').matches ? 2 : 3;
-        for (let i = 0; i < ringCount; i++) {
-          const p = (sonarPhase + i / ringCount) % 1;
+        sonarPhase += 0.0022;
+        for (let i = 0; i < 3; i++) {
+          const p = (sonarPhase + i / 3) % 1;
           const r = p * maxR;
-          const alpha = (1 - p) * (isDark ? 0.08 : 0.06);
+          const alpha = (1 - p) * (isDark ? 0.07 : 0.055);
           ctx.beginPath();
           ctx.arc(cx, cy, r, 0, Math.PI * 2);
           ctx.strokeStyle = `rgba(${strokeRGB}, ${alpha})`;
           ctx.lineWidth = 1;
           ctx.stroke();
         }
-        if (!reduceMotion) requestAnimationFrame(renderSonar);
+        requestAnimationFrame(renderSonar);
       }
       renderSonar();
 
-      // ================== 4. 主题与基础工具 ==================
+      // ================== 4. 主题与工具函数 ==================
       const THEME_KEY = 'xv_drop_theme';
-      const NAME_KEY = 'xv_drop_device_name';
+      const PROFILE_KEY = 'xv_drop_hw_profile_v4';
       const ROOM_KEY = 'xv_drop_room_code';
 
       const root = document.documentElement;
@@ -1081,7 +1444,7 @@
         t.textContent = msg;
         t.classList.add('show');
         clearTimeout(t._timer);
-        t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+        t._timer = setTimeout(() => t.classList.remove('show'), 2600);
       }
 
       function formatBytes(b) {
@@ -1095,7 +1458,7 @@
         return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
       }
 
-      // ================== 5. 二阶临界阻尼手风琴切片物理引擎 ==================
+      // ================== 5. 多彩建筑切片渲染与二阶临界阻尼手风琴 ==================
       const peers = new Map();
       let focusIndex = 0;
       let trackPos = 0;
@@ -1107,6 +1470,14 @@
       const peerCountIndicator = document.getElementById('peerCountIndicator');
       const hiddenFileInput = document.getElementById('hiddenFileInput');
       let activeTargetPeerId = null;
+
+      function splitNameAndCodename(fullName) {
+        const parts = String(fullName || 'Optical Node · 曜石').split('·').map(s => s.trim());
+        return {
+          model: parts[0] || 'Optical Node',
+          codename: parts[1] || 'OPTICAL'
+        };
+      }
 
       function syncStripDOM() {
         const list = Array.from(peers.values());
@@ -1125,35 +1496,52 @@
 
         kineticStrip.innerHTML = list.map((peer, idx) => {
           const num = String(idx + 1).padStart(2, '0');
-          const profile = peer.profile || normalizeRemoteProfile(null, '', '');
-          const accent = BRAND_STYLES[profile.brandKey]?.accent || BRAND_STYLES.generic.accent;
-          const mark = BRAND_STYLES[profile.brandKey]?.mark || 'D';
-          const browser = profile.browser || 'Browser';
-          const deviceType = profile.deviceType || peer.kindLabel || 'DEVICE';
+          const brand = BRAND_PROFILES[peer.brandKey] || BRAND_PROFILES.APPLE;
+          const wireframe = DEVICE_WIREFRAMES[peer.formFactor] || DEVICE_WIREFRAMES.LAPTOP;
+          const formMeta = FORM_META[peer.formFactor] || FORM_META.LAPTOP;
+          const parsed = splitNameAndCodename(peer.name);
+          const isReady = peer.dc && peer.dc.readyState === 'open';
+
           return `
-            <div class="slice-item ${idx === focusIndex ? 'is-focused' : ''}" data-peer-id="${escapeHtml(peer.id)}" data-idx="${idx}" style="--peer-accent-base:${accent};">
+            <div class="slice-item ${idx === focusIndex ? 'is-focused' : ''}"
+                 data-peer-id="${peer.id}"
+                 data-idx="${idx}"
+                 style="--brand-primary: ${brand.primary}; --brand-secondary: ${brand.secondary}; --brand-rgb: ${brand.rgb}; --brand-sec-rgb: ${brand.secRgb};">
+              <div class="slice-crown"></div>
+              <div class="slice-aura"></div>
+              <div class="slice-watermark">${num}</div>
+
               <div class="slice-header">
-                <div class="peer-identity">
-                  <span class="peer-mark" aria-hidden="true">${escapeHtml(mark)}</span>
-                  <div class="peer-labels">
-                    <span class="peer-brand">${escapeHtml(profile.brandName || 'DEVICE')}</span>
-                    <span class="peer-number">${num} / ${escapeHtml(deviceType)}</span>
-                  </div>
+                <div class="slice-index-group">
+                  <span class="brand-dot"></span>
+                  <span>NODE // ${num}</span>
                 </div>
-                <span class="slice-status-dot" title="ONLINE" aria-label="在线"></span>
+                <span class="brand-pill">${brand.badge}</span>
               </div>
+
               <div class="slice-body">
-                <div class="slice-name">${escapeHtml(peer.name)}</div>
-                <div class="slice-hint">${escapeHtml(profile.model || deviceType)} · ${escapeHtml(browser)}</div>
-              </div>
-              <div class="slice-footer">
-                <span class="slice-type">${escapeHtml(deviceType)} / ${escapeHtml(browser)}</span>
-                <div class="slice-actions">
-                  <button class="slice-action-link primary" data-file-trigger="${escapeHtml(peer.id)}" data-cursor="hover">选择文件</button>
-                  <button class="slice-action-link" data-text-trigger="${escapeHtml(peer.id)}" data-cursor="hover">发送文字</button>
+                <div class="blueprint-box">${wireframe}</div>
+                <div class="slice-title-wrap">
+                  <div class="slice-model">${escapeHtml(parsed.model)}</div>
+                  <div class="slice-codename">
+                    <span>SERIES // ${escapeHtml(parsed.codename)}</span>
+                    <span>·</span>
+                    <span>${isReady ? 'P2P DIRECT' : 'READY'}</span>
+                  </div>
+                  <div class="slice-device-spec">${formMeta.spec}</div>
                 </div>
               </div>
-              <div class="slice-progress" id="prog_${escapeHtml(peer.id)}" style="width: ${peer.progress || 0}%"></div>
+
+              <div class="slice-footer">
+                <span class="primary-drop-hint">
+                  <i class="ri-upload-2-line"></i> 点击或拖拽传文件
+                </span>
+                <button class="quick-action-btn" data-text-trigger="${peer.id}" data-cursor="hover">
+                  <i class="ri-chat-new-line"></i> 发送文字
+                </button>
+              </div>
+
+              <div class="slice-progress" id="prog_${peer.id}" style="width: ${peer.progress || 0}%"></div>
             </div>
           `;
         }).join('');
@@ -1162,41 +1550,25 @@
           const pid = el.getAttribute('data-peer-id');
           const idx = parseInt(el.getAttribute('data-idx'), 10);
 
-          el.addEventListener('pointerenter', () => {
-            if (window.matchMedia('(pointer: fine)').matches) {
-              focusIndex = idx;
-              updateFocusClass();
-            }
+          el.addEventListener('mouseenter', () => {
+            focusIndex = idx;
+            updateFocusClass();
           });
 
           el.addEventListener('click', (e) => {
             if (e.target.closest('[data-text-trigger]')) {
               e.stopPropagation();
-              focusIndex = idx;
-              updateFocusClass();
               openTextComposer(pid);
-              return;
-            }
-            if (e.target.closest('[data-file-trigger]')) {
-              e.stopPropagation();
-              focusIndex = idx;
-              updateFocusClass();
-              activeTargetPeerId = pid;
-              hiddenFileInput.value = '';
-              hiddenFileInput.click();
               return;
             }
             focusIndex = idx;
             updateFocusClass();
-            // 桌面端保留整张卡片点选文件；触屏端仅选中，避免误触立即弹出文件选择器。
-            if (window.matchMedia('(pointer: coarse)').matches) return;
             activeTargetPeerId = pid;
             hiddenFileInput.value = '';
             hiddenFileInput.click();
           });
 
           el.addEventListener('contextmenu', (e) => {
-            if (window.matchMedia('(pointer: coarse)').matches) return;
             e.preventDefault();
             openTextComposer(pid);
           });
@@ -1219,212 +1591,84 @@
       }
 
       function updateFocusClass() {
-        const items = kineticStrip.querySelectorAll('.slice-item');
-        items.forEach((item, i) => {
+        kineticStrip.querySelectorAll('.slice-item').forEach((item, i) => {
           item.classList.toggle('is-focused', i === focusIndex);
         });
       }
 
-      // 临界阻尼 ODE (zeta = 1.0, omega = 6.2) 驱动连续切片权重
       function tickStripPhysics(now) {
         const dt = Math.min((now - lastPhysicsTime) / 1000, 0.064);
         lastPhysicsTime = now;
 
-        const omega = 6.2;
-        const d0 = trackPos - focusIndex;
-        const v0 = trackVel;
-        const expTerm = Math.exp(-omega * dt);
-        const nextD = (d0 + (v0 + omega * d0) * dt) * expTerm;
-        trackVel = (v0 - omega * (v0 + omega * d0) * dt) * expTerm;
-        trackPos = focusIndex + nextD;
+        if (window.innerWidth > 768) {
+          const omega = 6.2;
+          const d0 = trackPos - focusIndex;
+          const v0 = trackVel;
+          const expTerm = Math.exp(-omega * dt);
+          const nextD = (d0 + (v0 + omega * d0) * dt) * expTerm;
+          trackVel = (v0 - omega * (v0 + omega * d0) * dt) * expTerm;
+          trackPos = focusIndex + nextD;
 
-        const slices = kineticStrip.querySelectorAll('.slice-item');
-        if (slices.length > 1) {
-          slices.forEach((slice, i) => {
-            const dist = Math.abs(i - trackPos);
-            const peak = dist < 1 ? 0.5 * (1 + Math.cos(Math.PI * dist)) : 0;
-            const weight = 1 + peak * 2.4;
-            slice.style.flexGrow = weight.toFixed(4);
-          });
+          const slices = kineticStrip.querySelectorAll('.slice-item');
+          if (slices.length > 1) {
+            slices.forEach((slice, i) => {
+              const dist = Math.abs(i - trackPos);
+              const peak = dist < 1 ? 0.5 * (1 + Math.cos(Math.PI * dist)) : 0;
+              const weight = 1 + peak * 2.1;
+              slice.style.flexGrow = weight.toFixed(4);
+            });
+          }
         }
         requestAnimationFrame(tickStripPhysics);
       }
       requestAnimationFrame(tickStripPhysics);
 
-      // ================== 6. 本机身份与双通道零配置信令 ==================
+      // ================== 6. 本机配置加载与 Client Hints 精修 ==================
       const myId = 'xv_' + Math.random().toString(36).substring(2, 9);
-      const ua = navigator.userAgent || '';
-      const NAME_CUSTOM_KEY = 'xv_drop_device_name_custom';
+      let myProfile = null;
+      try {
+        myProfile = JSON.parse(localStorage.getItem(PROFILE_KEY));
+      } catch (e) {}
 
-      const BRAND_STYLES = {
-        apple:    { label: 'APPLE',    accent: '#007AFF', mark: 'A' },
-        samsung:  { label: 'SAMSUNG',  accent: '#1428A0', mark: 'S' },
-        google:   { label: 'GOOGLE',   accent: '#4285F4', mark: 'G' },
-        xiaomi:   { label: 'XIAOMI',   accent: '#FF6900', mark: 'Mi' },
-        huawei:   { label: 'HUAWEI',   accent: '#D93025', mark: 'H' },
-        honor:    { label: 'HONOR',    accent: '#0072CE', mark: 'Ho' },
-        oneplus:  { label: 'ONEPLUS',  accent: '#F5010C', mark: '1+' },
-        oppo:     { label: 'OPPO',     accent: '#00A862', mark: 'O' },
-        vivo:     { label: 'VIVO',     accent: '#415FFF', mark: 'V' },
-        realme:   { label: 'REALME',   accent: '#D6A900', mark: 'R' },
-        motorola: { label: 'MOTOROLA', accent: '#2F6BFF', mark: 'M' },
-        sony:     { label: 'SONY',     accent: '#777777', mark: 'S' },
-        asus:     { label: 'ASUS',     accent: '#00A5E5', mark: 'AS' },
-        nothing:  { label: 'NOTHING',  accent: '#858585', mark: 'N' },
-        windows:  { label: 'WINDOWS',  accent: '#0078D4', mark: 'W' },
-        linux:    { label: 'LINUX',    accent: '#E95420', mark: 'L' },
-        chromeos: { label: 'CHROMEOS', accent: '#4285F4', mark: 'C' },
-        generic:  { label: 'DEVICE',   accent: '#858585', mark: 'D' }
-      };
-
-      function detectBrowser(userAgent) {
-        if (/Edg\//i.test(userAgent)) return 'Edge';
-        if (/SamsungBrowser/i.test(userAgent)) return 'Samsung Internet';
-        if (/OPR\//i.test(userAgent) || /Opera/i.test(userAgent)) return 'Opera';
-        if (/Firefox\//i.test(userAgent) || /FxiOS\//i.test(userAgent)) return 'Firefox';
-        if (/CriOS\//i.test(userAgent)) return 'Chrome';
-        if (/Chrome\//i.test(userAgent) && !/Edg\//i.test(userAgent)) return 'Chrome';
-        if (/Safari\//i.test(userAgent)) return 'Safari';
-        return 'Browser';
+      if (!myProfile || !myProfile.name) {
+        myProfile = inferHardwareProfile();
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(myProfile));
       }
 
-      function parseAndroidModel(userAgent) {
-        const match = userAgent.match(/Android\s+[^;]+;\s*([^;)]+?)(?:\s+Build\/|[;)])/i);
-        if (!match) return '';
-        return match[1].replace(/;.*$/, '').trim();
-      }
-
-      function getBrandKey(userAgent, platform, model) {
-        const haystack = `${model || ''} ${userAgent || ''} ${platform || ''}`;
-        if (/iPhone|iPad|iPod|Macintosh|MacIntel|macOS|Mac OS/i.test(haystack)) return 'apple';
-        if (/SM-[A-Z0-9]+|Samsung|Galaxy/i.test(haystack)) return 'samsung';
-        if (/Pixel/i.test(haystack)) return 'google';
-        if (/Xiaomi|Redmi|POCO|Mi\s?\d|MIX\s?Fold/i.test(haystack)) return 'xiaomi';
-        if (/HUAWEI|Huawei/i.test(haystack)) return 'huawei';
-        if (/HONOR/i.test(haystack)) return 'honor';
-        if (/OnePlus|ONEPLUS/i.test(haystack)) return 'oneplus';
-        if (/OPPO|CPH[0-9]{3,}/i.test(haystack)) return 'oppo';
-        if (/vivo|iQOO|V[0-9]{4}[A-Z]?/i.test(haystack)) return 'vivo';
-        if (/realme|RMX[0-9]+/i.test(haystack)) return 'realme';
-        if (/motorola|Moto\s/i.test(haystack)) return 'motorola';
-        if (/Xperia|Sony/i.test(haystack)) return 'sony';
-        if (/ASUS|ROG Phone|Zenfone/i.test(haystack)) return 'asus';
-        if (/Nothing Phone/i.test(haystack)) return 'nothing';
-        if (/CrOS|Chrome OS/i.test(haystack)) return 'chromeos';
-        if (/Windows|Win32|Win64/i.test(haystack)) return 'windows';
-        if (/Android/i.test(haystack)) return 'generic';
-        if (/Linux|X11|Ubuntu/i.test(haystack)) return 'linux';
-        return 'generic';
-      }
-
-      function inferDeviceProfile(modelHint = '', platformHint = '') {
-        const platform = platformHint || navigator.userAgentData?.platform || navigator.platform || '';
-        const isIPad = /iPad/i.test(ua) || (/Macintosh|MacIntel/i.test(`${ua} ${platform}`) && (navigator.maxTouchPoints || 0) > 1);
-        const isIPhone = /iPhone|iPod/i.test(ua);
-        const isAndroid = /Android/i.test(ua) || /Android/i.test(platform);
-        const isTablet = isIPad || /Tablet/i.test(ua) || (isAndroid && !/Mobile/i.test(ua));
-        let deviceType = 'DESKTOP';
-        if (isIPhone || (isAndroid && !isTablet) || /Mobile/i.test(ua)) deviceType = 'PHONE';
-        else if (isTablet) deviceType = 'TABLET';
-
-        let model = String(modelHint || (isAndroid ? parseAndroidModel(ua) : '')).trim();
-        let brandKey = getBrandKey(ua, platform, model);
-        let modelLabel = '';
-        if (brandKey === 'apple') {
-          modelLabel = isIPad ? 'iPad' : isIPhone ? 'iPhone' : /Macintosh|MacIntel|macOS|Mac OS/i.test(`${ua} ${platform}`) ? 'Mac' : 'Apple Device';
-          if (model && /iPhone|iPad/i.test(model)) modelLabel = model;
-        } else if (brandKey === 'samsung') {
-          modelLabel = /Galaxy/i.test(model) ? model : (deviceType === 'PHONE' ? 'Galaxy Phone' : deviceType === 'TABLET' ? 'Galaxy Tab' : 'Galaxy Book');
-        } else if (brandKey === 'google') {
-          modelLabel = /Pixel/i.test(model) ? model : (deviceType === 'PHONE' ? 'Pixel Phone' : deviceType === 'TABLET' ? 'Pixel Tablet' : 'Chromebook');
-        } else if (brandKey === 'xiaomi') {
-          modelLabel = /Xiaomi|Redmi|POCO|MIX/i.test(model) ? model : 'Xiaomi Phone';
-        } else if (['huawei','honor','oneplus','oppo','vivo','realme','motorola','sony','asus','nothing'].includes(brandKey)) {
-          const cleanModel = model && !/^[A-Z]{2,}[-_]?[A-Z0-9]{4,}$/i.test(model) ? model : '';
-          const genericLabels = { huawei: 'Huawei Phone', honor: 'HONOR Phone', oneplus: 'OnePlus Phone', oppo: 'OPPO Phone', vivo: 'vivo Phone', realme: 'realme Phone', motorola: 'Motorola Phone', sony: 'Xperia', asus: 'ASUS Device', nothing: 'Nothing Phone' };
-          modelLabel = cleanModel || genericLabels[brandKey] || 'Android Device';
-        } else if (brandKey === 'windows') {
-          modelLabel = deviceType === 'DESKTOP' ? 'Windows PC' : 'Windows Device';
-        } else if (brandKey === 'linux') {
-          modelLabel = deviceType === 'DESKTOP' ? 'Linux PC' : 'Linux Device';
-        } else if (brandKey === 'chromeos') {
-          modelLabel = 'Chromebook';
-        } else {
-          modelLabel = isAndroid ? 'Android Device' : deviceType === 'DESKTOP' ? 'Computer' : deviceType === 'TABLET' ? 'Tablet' : 'Mobile Device';
-        }
-        const browser = detectBrowser(ua);
-        const theme = BRAND_STYLES[brandKey] || BRAND_STYLES.generic;
-        return { brandKey, brandName: theme.label, accent: theme.accent, monogram: theme.mark, deviceType, kindLabel: deviceType, browser, model: modelLabel, platform };
-      }
-
-      function normalizeRemoteProfile(raw, userAgent, platform) {
-        // 对旧版本客户端提供兼容映射；未知设备使用中性色，不借用本机型号。
-        const key = raw && Object.prototype.hasOwnProperty.call(BRAND_STYLES, raw.brandKey) ? raw.brandKey : getBrandKey(userAgent || '', platform || '', '');
-        const theme = BRAND_STYLES[key] || BRAND_STYLES.generic;
-        const allowedTypes = ['PHONE', 'TABLET', 'DESKTOP'];
-        let deviceType = raw && allowedTypes.includes(raw.deviceType) ? raw.deviceType : (raw && allowedTypes.includes(raw.kindLabel) ? raw.kindLabel : 'DESKTOP');
-        if (raw && raw.kindLabel === 'MOBILE') deviceType = 'PHONE';
-        const allowedBrowsers = ['Safari', 'Chrome', 'Edge', 'Firefox', 'Opera', 'Samsung Internet', 'Browser'];
-        const browser = raw && allowedBrowsers.includes(raw.browser) ? raw.browser : 'Browser';
-        const fallbackModel = deviceType === 'PHONE' ? 'Mobile Device' : deviceType === 'TABLET' ? 'Tablet' : 'Computer';
-        const model = raw && typeof raw.model === 'string' ? raw.model.slice(0, 64) : fallbackModel;
-        return { brandKey: key, brandName: theme.label, accent: theme.accent, monogram: theme.mark, deviceType, kindLabel: deviceType, browser, model };
-      }
-
-      function formatDeviceName(profile) {
-        const model = profile.model || 'Device';
-        const browser = profile.browser || 'Browser';
-        const prefixes = { apple: 'Apple ', samsung: 'Samsung ', google: 'Google ', xiaomi: '', huawei: 'Huawei ', honor: 'HONOR ', oneplus: 'OnePlus ', oppo: 'OPPO ', vivo: 'vivo ', realme: 'realme ', motorola: 'Motorola ', sony: 'Sony ', asus: 'ASUS ', nothing: 'Nothing ', windows: '', linux: '', chromeos: '', generic: '' };
-        const brandedStarts = {
-          apple: /^Apple\b/i, samsung: /^Samsung\b/i, google: /^Google\b/i,
-          xiaomi: /^(Xiaomi|Redmi|POCO|MIX)\b/i, huawei: /^Huawei\b/i, honor: /^HONOR\b/i,
-          oneplus: /^OnePlus\b/i, oppo: /^OPPO\b/i, vivo: /^vivo\b/i, realme: /^realme\b/i,
-          motorola: /^Motorola\b/i, sony: /^(Sony|Xperia)\b/i, asus: /^ASUS\b/i, nothing: /^Nothing\b/i
-        };
-        let label = model;
-        const prefix = prefixes[profile.brandKey] ?? '';
-        const alreadyBranded = (brandedStarts[profile.brandKey] || /^(Windows|Linux|Chromebook)\b/i).test(model);
-        if (prefix && !alreadyBranded) label = prefix + model;
-        return `${label} · ${browser}`.slice(0, 48);
-      }
-
-      let deviceProfile = inferDeviceProfile();
-      const savedName = localStorage.getItem(NAME_KEY) || '';
-      const legacyAutoName = /^(Mac|iPhone|iPad|Android|PC|Node)\s+\d{2}$/i.test(savedName);
-      let isCustomDeviceName = localStorage.getItem(NAME_CUSTOM_KEY) === '1' || (!!savedName && !legacyAutoName && localStorage.getItem(NAME_CUSTOM_KEY) !== '0');
-      let myName = (isCustomDeviceName && savedName) ? savedName.slice(0, 28) : formatDeviceName(deviceProfile);
-      if (!myName || myName === 'Computer · Browser') myName = 'Device · Browser';
-      localStorage.setItem(NAME_KEY, myName);
-      localStorage.setItem(NAME_CUSTOM_KEY, isCustomDeviceName ? '1' : '0');
-
-      // Chromium Android 的 UA Client Hints 可提供更准确的型号；失败时回退为常规品牌名。
-      if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
-        navigator.userAgentData.getHighEntropyValues(['model', 'platform']).then(info => {
-          deviceProfile = inferDeviceProfile(info.model || '', info.platform || '');
-          if (!isCustomDeviceName) {
-            myName = formatDeviceName(deviceProfile);
-            localStorage.setItem(NAME_KEY, myName);
+      // Android / Chromium 高熵真机型号异步读取
+      if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues && !myProfile.userLocked) {
+        navigator.userAgentData.getHighEntropyValues(['model', 'platform']).then(uaData => {
+          if (uaData.model && uaData.model.trim().length > 1) {
+            const raw = uaData.model.trim();
+            const friendly = ANDROID_BUILD_DICT[raw] || raw;
+            myProfile.name = `${friendly} · ${myProfile.codename || '光学'}`;
+            localStorage.setItem(PROFILE_KEY, JSON.stringify(myProfile));
+            refreshSelfUI();
+            emitSignal({ type: 'hello' });
           }
-          refreshHeaderLabels();
-          emitSignal({ type: 'hello' });
         }).catch(() => {});
       }
 
       let roomCode = localStorage.getItem(ROOM_KEY) || '0411';
       localStorage.setItem(ROOM_KEY, roomCode);
 
-      const selfIdentityBtn = document.getElementById('selfIdentityBtn');
+      const selfNameText = document.getElementById('selfNameText');
+      const selfBrandBar = document.getElementById('selfBrandBar');
       const roomCodeText = document.getElementById('roomCodeText');
       const idleSubText = document.getElementById('idleSubText');
       const signalBeacon = document.getElementById('signalBeacon');
 
-      function refreshHeaderLabels() {
-        selfIdentityBtn.textContent = myName;
+      function refreshSelfUI() {
+        const myBrand = BRAND_PROFILES[myProfile.brandKey] || BRAND_PROFILES.APPLE;
+        selfBrandBar.style.background = `linear-gradient(180deg, ${myBrand.primary}, ${myBrand.secondary})`;
+        document.documentElement.style.setProperty('--self-rgb', myBrand.rgb);
+        selfNameText.textContent = `${myProfile.name} [${myBrand.name}]`;
         roomCodeText.textContent = roomCode;
-        idleSubText.textContent = `CH // ${roomCode}`;
+        idleSubText.textContent = `CHANNEL // ${roomCode}`;
       }
-      refreshHeaderLabels();
+      refreshSelfUI();
 
+      // ================== 7. 双通道信令与 WebRTC 直连 ==================
       let bc = null;
       let mqttClient = null;
 
@@ -1432,9 +1676,9 @@
         const raw = JSON.stringify({
           ...packet,
           from: myId,
-          fromName: myName,
-          kindLabel: deviceProfile.kindLabel,
-          deviceProfile,
+          fromName: myProfile.name,
+          brandKey: myProfile.brandKey,
+          formFactor: myProfile.formFactor,
           room: roomCode,
           ts: Date.now()
         });
@@ -1488,11 +1732,10 @@
           }
         });
         if (mutated) syncStripDOM();
-      }, 4800);
+      }, 4500);
 
       window.addEventListener('beforeunload', () => emitSignal({ type: 'bye' }));
 
-      // ================== 7. WebRTC 点对点引擎 ==================
       const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
       async function onSignalReceived(raw) {
@@ -1513,9 +1756,9 @@
         if (!peer) {
           peer = {
             id: msg.from,
-            name: msg.fromName || 'Device',
-            kindLabel: msg.kindLabel || 'DEVICE',
-            profile: normalizeRemoteProfile(msg.deviceProfile || { kindLabel: msg.kindLabel }, '', ''),
+            name: msg.fromName || 'Optical Node · 银盐',
+            brandKey: msg.brandKey || 'APPLE',
+            formFactor: msg.formFactor || 'LAPTOP',
             lastSeen: Date.now(),
             pc: null,
             dc: null,
@@ -1524,17 +1767,11 @@
           peers.set(msg.from, peer);
         } else {
           peer.lastSeen = Date.now();
-          let peerChanged = false;
-          if (msg.fromName && peer.name !== msg.fromName) { peer.name = msg.fromName; peerChanged = true; }
-          if (msg.deviceProfile) {
-            const nextProfile = normalizeRemoteProfile(msg.deviceProfile, '', '');
-            if (!peer.profile || peer.profile.brandKey !== nextProfile.brandKey || peer.profile.model !== nextProfile.model || peer.profile.browser !== nextProfile.browser || peer.profile.deviceType !== nextProfile.deviceType) {
-              peer.profile = nextProfile;
-              peerChanged = true;
-            }
-            peer.kindLabel = nextProfile.kindLabel;
-          }
-          if (peerChanged) syncStripDOM();
+          let changed = false;
+          if (msg.fromName && peer.name !== msg.fromName) { peer.name = msg.fromName; changed = true; }
+          if (msg.brandKey && peer.brandKey !== msg.brandKey) { peer.brandKey = msg.brandKey; changed = true; }
+          if (msg.formFactor && peer.formFactor !== msg.formFactor) { peer.formFactor = msg.formFactor; changed = true; }
+          if (changed) syncStripDOM();
         }
 
         if (isNew) syncStripDOM();
@@ -1593,8 +1830,11 @@
         let meta = null, chunks = [], received = 0;
 
         dc.onopen = () => {
+          syncStripDOM();
           if (peer._readyCb) { peer._readyCb(dc); peer._readyCb = null; }
         };
+
+        dc.onclose = () => syncStripDOM();
 
         dc.onmessage = (e) => {
           if (typeof e.data === 'string') {
@@ -1668,28 +1908,27 @@
         }
       }
 
-      // ================== 8. 弹窗交互控制 ==================
+      // ================== 8. 接收抽屉 & 硬件精准校准面板 ==================
       const receiveSheet = document.getElementById('receiveSheet');
       const recIndex = document.getElementById('recIndex');
       const recHeading = document.getElementById('recHeading');
       const recImg = document.getElementById('recImg');
       const recSpecs = document.getElementById('recSpecs');
       const recSaveBtn = document.getElementById('recSaveBtn');
-      const recDismissBtn = document.getElementById('recDismissBtn');
       let activeBlobUrl = null;
 
       function closeReceive() {
         receiveSheet.classList.remove('active');
         if (activeBlobUrl) { URL.revokeObjectURL(activeBlobUrl); activeBlobUrl = null; }
       }
-      recDismissBtn.addEventListener('click', closeReceive);
+      document.getElementById('recDismissBtn').addEventListener('click', closeReceive);
 
       function showIncomingFile(fromName, name, size, mime, blob) {
         if (activeBlobUrl) URL.revokeObjectURL(activeBlobUrl);
         activeBlobUrl = URL.createObjectURL(blob);
 
         recIndex.textContent = `FROM // ${fromName.toUpperCase()}`;
-        recHeading.textContent = '收到文件';
+        recHeading.textContent = '收到文件投递';
 
         if (mime && mime.startsWith('image/')) {
           recImg.src = activeBlobUrl;
@@ -1703,7 +1942,7 @@
           <div class="spec-line"><span>SIZE</span><span>${formatBytes(size)}</span></div>
         `;
 
-        recSaveBtn.textContent = '保存';
+        recSaveBtn.textContent = '保存文件';
         recSaveBtn.onclick = () => {
           const a = document.createElement('a');
           a.href = activeBlobUrl;
@@ -1718,47 +1957,106 @@
 
       function showIncomingText(fromName, text) {
         recIndex.textContent = `FROM // ${fromName.toUpperCase()}`;
-        recHeading.textContent = '收到文本';
+        recHeading.textContent = '收到文字投递';
         recImg.style.display = 'none';
         recSpecs.innerHTML = `
           <div class="spec-line" style="flex-direction:column; gap:8px;">
-            <span style="max-width:100%; text-align:left; user-select:text; font-family:var(--font-serif); font-size:16px; line-height:1.6;">${escapeHtml(text)}</span>
+            <span style="max-width:100%; text-align:left; user-select:text; font-family:var(--font-sans); font-size:15px; line-height:1.6;">${escapeHtml(text)}</span>
           </div>
         `;
-        recSaveBtn.textContent = '复制';
+        recSaveBtn.textContent = '复制内容';
         recSaveBtn.onclick = () => {
           navigator.clipboard.writeText(text).then(() => {
-            whisper('COPIED');
+            whisper('COPIED TO CLIPBOARD');
             closeReceive();
           });
         };
         receiveSheet.classList.add('active');
       }
 
-      // 通用输入面板
+      // 本机硬件校准面板逻辑
+      const calibrateSheet = document.getElementById('calibrateSheet');
+      const calBrandGrid = document.getElementById('calBrandGrid');
+      const calFormGrid = document.getElementById('calFormGrid');
+      const presetChipsWrap = document.getElementById('presetChipsWrap');
+      const calModelInput = document.getElementById('calModelInput');
+      let tempBrandKey = myProfile.brandKey;
+      let tempFormKey = myProfile.formFactor;
+
+      function renderCalibrationPanel() {
+        calBrandGrid.innerHTML = Object.values(BRAND_PROFILES).map(b => `
+          <button type="button" class="cal-option-btn ${b.key === tempBrandKey ? 'selected' : ''}" data-brand="${b.key}" data-cursor="hover">
+            <span style="width:7px; height:7px; background:${b.primary}; display:inline-block;"></span>
+            <span>${b.name}</span>
+          </button>
+        `).join('');
+
+        calFormGrid.innerHTML = Object.values(FORM_META).map(f => `
+          <button type="button" class="cal-option-btn ${f.key === tempFormKey ? 'selected' : ''}" data-form="${f.key}" data-cursor="hover">
+            <span>${f.short}</span>
+          </button>
+        `).join('');
+
+        const activeBrandObj = BRAND_PROFILES[tempBrandKey] || BRAND_PROFILES.APPLE;
+        presetChipsWrap.innerHTML = (activeBrandObj.presets || []).map(p => `
+          <button type="button" class="preset-chip" data-preset="${escapeHtml(p)}" data-cursor="hover">${escapeHtml(p)}</button>
+        `).join('');
+
+        calBrandGrid.querySelectorAll('[data-brand]').forEach(btn => {
+          btn.onclick = () => {
+            tempBrandKey = btn.getAttribute('data-brand');
+            renderCalibrationPanel();
+          };
+        });
+
+        calFormGrid.querySelectorAll('[data-form]').forEach(btn => {
+          btn.onclick = () => {
+            tempFormKey = btn.getAttribute('data-form');
+            renderCalibrationPanel();
+          };
+        });
+
+        presetChipsWrap.querySelectorAll('[data-preset]').forEach(chip => {
+          chip.onclick = () => {
+            calModelInput.value = chip.getAttribute('data-preset');
+          };
+        });
+      }
+
+      document.getElementById('selfIdentityBtn').addEventListener('click', () => {
+        tempBrandKey = myProfile.brandKey;
+        tempFormKey = myProfile.formFactor;
+        calModelInput.value = myProfile.name;
+        renderCalibrationPanel();
+        calibrateSheet.classList.add('active');
+      });
+
+      document.getElementById('calCancelBtn').addEventListener('click', () => {
+        calibrateSheet.classList.remove('active');
+      });
+
+      document.getElementById('calSaveBtn').addEventListener('click', () => {
+        const val = calModelInput.value.trim();
+        myProfile.brandKey = tempBrandKey;
+        myProfile.formFactor = tempFormKey;
+        if (val) myProfile.name = val.slice(0, 32);
+        myProfile.userLocked = true;
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(myProfile));
+        refreshSelfUI();
+        emitSignal({ type: 'hello' });
+        calibrateSheet.classList.remove('active');
+        whisper('IDENTITY CALIBRATED');
+      });
+
+      // 发送文字与配对频道设定
       const promptSheet = document.getElementById('promptSheet');
       const prmIndex = document.getElementById('prmIndex');
       const prmHeading = document.getElementById('prmHeading');
       const prmInput = document.getElementById('prmInput');
       const prmTextarea = document.getElementById('prmTextarea');
-      const prmCancelBtn = document.getElementById('prmCancelBtn');
       const prmOkBtn = document.getElementById('prmOkBtn');
 
-      prmCancelBtn.addEventListener('click', () => promptSheet.classList.remove('active'));
-
-      [receiveSheet, promptSheet].forEach(sheet => {
-        sheet.addEventListener('click', (event) => {
-          if (event.target !== sheet) return;
-          if (sheet === receiveSheet) closeReceive();
-          else sheet.classList.remove('active');
-        });
-      });
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-          receiveSheet.classList.remove('active');
-          promptSheet.classList.remove('active');
-        }
-      });
+      document.getElementById('prmCancelBtn').addEventListener('click', () => promptSheet.classList.remove('active'));
 
       function openTextComposer(peerId) {
         const peer = peers.get(peerId);
@@ -1778,34 +2076,9 @@
         };
       }
 
-      selfIdentityBtn.addEventListener('click', () => {
-        prmIndex.textContent = 'IDENTITY';
-        prmHeading.textContent = '设备名称';
-        prmTextarea.style.display = 'none';
-        prmInput.style.display = 'block';
-        prmInput.value = myName;
-        promptSheet.classList.add('active');
-        setTimeout(() => prmInput.focus(), 60);
-
-        prmOkBtn.onclick = () => {
-          const v = prmInput.value.trim();
-          if (v) {
-            myName = v.replace(/[\u0000-\u001F\u007F]/g, '').trim().slice(0, 28);
-            if (myName) {
-              isCustomDeviceName = true;
-              localStorage.setItem(NAME_KEY, myName);
-              localStorage.setItem(NAME_CUSTOM_KEY, '1');
-              refreshHeaderLabels();
-              emitSignal({ type: 'hello' });
-            }
-          }
-          promptSheet.classList.remove('active');
-        };
-      });
-
       document.getElementById('roomTrigger').addEventListener('click', () => {
-        prmIndex.textContent = 'CHANNEL';
-        prmHeading.textContent = '配对频道';
+        prmIndex.textContent = 'OPTICAL CHANNEL';
+        prmHeading.textContent = '设置配对频道码';
         prmTextarea.style.display = 'none';
         prmInput.style.display = 'block';
         prmInput.value = roomCode;
@@ -1817,14 +2090,15 @@
           if (v) {
             roomCode = v.slice(0, 10);
             localStorage.setItem(ROOM_KEY, roomCode);
-            refreshHeaderLabels();
+            refreshSelfUI();
             connectSignaling();
+            whisper(`CHANNEL // ${roomCode}`);
           }
           promptSheet.classList.remove('active');
         };
       });
 
-      // 全局拖拽与快捷键粘贴
+      // 全局文件选择、拖拽与粘贴
       hiddenFileInput.addEventListener('change', (e) => {
         if (e.target.files.length && activeTargetPeerId) {
           sendFilesToPeer(activeTargetPeerId, Array.from(e.target.files));
@@ -1850,7 +2124,7 @@
       });
 
       window.addEventListener('paste', (e) => {
-        if (promptSheet.classList.contains('active')) return;
+        if (promptSheet.classList.contains('active') || calibrateSheet.classList.contains('active')) return;
         const list = Array.from(peers.values());
         if (!list.length) return;
         const target = list[focusIndex] || list[0];
